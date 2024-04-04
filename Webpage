@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Management System</title>
+</head>
+<body>
+    <header>
+        <h1>Fitness Management System</h1>
+    </header>
+
+    <section id="problem-statement">
+        <h2>Problem Statement</h2>
+        <p>My project idea is to make a fitness management system that allows users to track and organize each of their exercises, create a routine, rate, and take notes on each routine created. Keeping up with fitness goals is difficult, especially as life becomes more and more busy, so this fitness management system will make each workout simple and trackable. I wish to create a fitness management system in a web application that allows users to interact with it. A database system will allow the data to be stored efficiently while data retrieval can take place.</p>
+    </section>
+
+    <section id="functional-requirements">
+        <h2>Functional Requirements</h2>
+        <ol>
+            <li>Adding exercises (user, exercises) – a user adds exercises to the database</li>
+            <li>Editing/deleting (user, exercises) – a user can edit exercises in the database or delete them</li>
+            <li>
+                Grouping
+                <ul>
+                    <li>exercises into workouts (user, exercises, workouts) – create workouts comprised of exercises</li>
+                    <li>workouts into weekly routines (user, workouts, weekly routines) - create weekly routines comprised of workouts</li>
+                    <li>weekly routines into a schedule (user, weekly routines, schedule) – create a schedule comprised of weekly routines</li>
+                </ul>
+            </li>
+            <li>Filter by (user, exercise, workout, weekly routine) – filter for special uses of the database system, can create workouts and weekly routines more quickly after the results are filtered
+                <ul>
+                    <li>muscle group</li>
+                    <li>exercise type</li>
+                    <li>equipment required</li>
+                    <li>rating</li>
+                    <li>intensity (of exercise, workout, and weekly routine)</li>
+                    <li>workout focus</li>
+                </ul>
+            </li>
+            <li>Rate - user rates which exercise, or workout was the best
+                <ul>
+                    <li>Exercises (user, exercise)</li>
+                    <li>Workouts (user, workouts)</li>
+                    <li>Weekly Routine (user, weekly routine)</li>
+                </ul>
+            </li>
+            <li>Query (user, exercises, workouts, weekly routines) – search for specific attributes in the system</li>
+        </ol>
+    </section>
+
+    <section id="conceptual-schema-summary">
+        <h2>Conceptual Schema Summary</h2>
+        <p>The database system is designed to store a large number of exercises that a user can access and append to create workouts, weekly routines, and schedules. The user compiles variations of the exercises to create personalized workouts. Each workout must have at least one exercise each weekly routine must have at least one workout, each schedule must have at least one weekly routine.</p>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Fitness Management System</p>
+    </footer>
+</body>
+</html>
