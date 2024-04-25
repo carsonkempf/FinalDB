@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Fitness App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="logo">My Fitness App</div>
+            <ul class="nav-links">
+                <li><a href="/exercises">Exercise List</a></li>
+                <li><a href="/workouts">Workout List</a></li>
+                <li><a href="/schedule">Schedule</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Content goes here -->
+
+    <script src="{{ url_for('static', filename='static/script.js') }}"></script>
+</body>
+</html>

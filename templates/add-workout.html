@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise List</title>
+    <link rel="stylesheet" href="static/styles.css"> <!-- Ensure your CSS styles the nav bar -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="static/add-workout.js"></script>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('exercise_list') }}">Exercise List</a></li>
+                <li><a href="{{ url_for('workout_list') }}">Workout List</a></li>
+                <li><a href="{{ url_for('schedule') }}">Schedule</a></li>
+            </ul>
+        </nav>
+    </header>
+    <h1>Add Workout</h1>
+</body>
+
+<button id="task-btn">DONE</button>
+
+<script>
+    // Define the URL in a script tag within the HTML
+    var exerciseListUrl = "{{ url_for('workout_list') }}";
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var taskBtn = document.getElementById('task-btn');
+        if (taskBtn) {
+            taskBtn.addEventListener('click', function() {
+                alert('Performing a task...');
+                window.location.href = exerciseListUrl;  // Use the URL defined in the HTML
+            });
+        }
+    });
+</script>
+
+
+</html>
