@@ -21,22 +21,13 @@
     </header>
     <h1>Add Workout</h1>
 </body>
+<a href="{{ url_for('select_exercise') }}" class="btn" id="add-exercise-or-workout-btn">SELECT EXERCISE</a>
 
 <button id="task-btn">DONE</button>
 
 <script>
     // Define the URL in a script tag within the HTML
-    var exerciseListUrl = "{{ url_for('workout_list') }}";
-
-    document.addEventListener('DOMContentLoaded', function() {
-        var taskBtn = document.getElementById('task-btn');
-        if (taskBtn) {
-            taskBtn.addEventListener('click', function() {
-                alert('Performing a task...');
-                window.location.href = exerciseListUrl;  // Use the URL defined in the HTML
-            });
-        }
-    });
+    var workoutListUrl = "{{ url_for('workout_list') }}";
 </script>
 
 

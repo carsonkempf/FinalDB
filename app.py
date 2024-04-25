@@ -1,4 +1,6 @@
 from flask import Flask, render_template, jsonify, g
+from datetime import datetime
+import calendar
 import sqlite3
 
 app = Flask(__name__)
@@ -48,7 +50,18 @@ def workout_list():
 
 @app.route('/schedule')
 def schedule():
-    return render_template('schedule.html')
+    # Fetch data from your database
+    # For instance, get workouts for the current month
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("SELECT * FROM Day JOIN Workout_On_Day ON Day.day_id = Workout_On_Day.day_id")
+    days = cur.fetchall()
+    return render_template('schedule.html', days=days)
+
+
+@app.route('/select-exercise')
+def select_exercise():
+    return render_template('select-exercise.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

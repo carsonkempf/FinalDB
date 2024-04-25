@@ -27,16 +27,6 @@
 <script>
     // Define the URL in a script tag within the HTML
     var exerciseListUrl = "{{ url_for('exercise_list') }}";
-
-    document.addEventListener('DOMContentLoaded', function() {
-        var taskBtn = document.getElementById('task-btn');
-        if (taskBtn) {
-            taskBtn.addEventListener('click', function() {
-                alert('Performing a task...');
-                window.location.href = exerciseListUrl;  // Use the URL defined in the HTML
-            });
-        }
-    });
 </script>
 
 
