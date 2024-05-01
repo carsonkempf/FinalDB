@@ -32,6 +32,19 @@ def api_exercises():
     exercises = cur.fetchall()
     return jsonify([dict(x) for x in exercises])
 
+@app.route('/api/workouts')
+def api_workouts():
+    """API endpoint to fetch all workouts."""
+    db = get_db()
+    cur = db.cursor()
+    query = '''
+    SELECT * FROM Workout
+    '''
+    cur.execute(query)
+    workouts = cur.fetchall()
+    return jsonify([dict(x) for x in workouts])
+
+
 @app.route('/')
 def exercise_list():
     return render_template('exercise-list.html')

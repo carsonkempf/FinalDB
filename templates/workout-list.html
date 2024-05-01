@@ -6,7 +6,7 @@
     <title>Workout List</title>
     <link rel="stylesheet" href="../static/styles.css"> <!-- Adjusted path to CSS file -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="../static/script.js"></script> <!-- Adjusted path to JavaScript file -->
+    <script src="../static/workoutscript.js"></script> <!-- Adjusted path to JavaScript file -->
 </head>
 <body>
     <!-- Navigation Header -->
@@ -20,5 +20,7 @@
         </nav>
     </header>
     <a href="{{ url_for('add_workout') }}" class="btn" id="add-exercise-or-workout-btn">ADD WORKOUT</a>
+    <h1>Workouts</h1>
+    <div id="workouts-container"></div> <!-- Container for exercises -->
 </body>
 </html>
