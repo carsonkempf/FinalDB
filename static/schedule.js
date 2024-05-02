@@ -1,68 +1,49 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const tbody = document.querySelector("tbody");
-    const tableNumber = 1; // Starting table number
-    const totalCells = 7 * 6; // Total number of cells in the table
+    const tbody = document.querySelector("#scheduleTable tbody");
+    const workoutContainer = document.getElementById("workoutContainer");
+    const workoutDetails = document.getElementById("workoutDetails");
+    const currentMonth = dayjs(); // Use dayjs to manage dates
+    const startOfMonth = currentMonth.startOf('month').day(); // Day.js to find the first day of the month
+    const daysInMonth = currentMonth.daysInMonth(); // Number of days in the current month
+    let dayCount = 1;
 
-    for (let i = 0; i < 6; i++) { // Update to 6 rows
+    for (let i = 0; i < 6; i++) {
         const row = document.createElement("tr");
         for (let j = 0; j < 7; j++) {
             const cell = document.createElement("td");
-            const cellNumber = i * 7 + j + 1; // Calculate cell number
-            cell.dataset.cellNumber = cellNumber; // Set cell number as a data attribute
-            cell.addEventListener("click", function () {
-                // Get the day of the week for the clicked cell
-                const clickedDayOfWeek = getDayOfWeek(cellNumber);
-                // Get the day of the week for the present month
-                const currentDayOfWeek = getDayOfWeekOfMonth();
-                // Compare the clicked cell's day of the week with the current day of the week
-                if (clickedDayOfWeek === currentDayOfWeek) {
-                    alert("Cell Number: " + cellNumber + " - Correct day of the week!");
-                } else {
-                    alert("Cell Number: " + cellNumber + " - Incorrect day of the week!");
-                }
-            });
+            if (i === 0 && j < startOfMonth || dayCount > daysInMonth) {
+                cell.innerText = "";
+            } else {
+                cell.innerText = dayCount;
+                cell.dataset.cellNumber = dayCount;
+                cell.addEventListener("click", function () {
+                    handleWorkoutDayClick(parseInt(this.innerText));
+                });
+                dayCount++;
+            }
             row.appendChild(cell);
         }
         tbody.appendChild(row);
     }
 
-    // Add event listeners to buttons
-    const button1 = document.getElementById("button1");
-    button1.addEventListener("click", function () {
-        alert("Button 1 clicked");
-    });
-
-    const button2 = document.getElementById("button2");
-    button2.addEventListener("click", function () {
-        alert("Button 2 clicked");
-    });
+    function handleWorkoutDayClick(day) {
+        switch (day) {
+            case 1:
+                workoutDetails.innerText = "Yoga and Stretching exercises.";
+                break;
+            case 4:
+                workoutDetails.innerText = "Cardio: Running 5km or cycling.";
+                break;
+            case 13:
+                workoutDetails.innerText = "Strength training: Upper body workout.";
+                break;
+            case 14:
+                workoutDetails.innerText = "Strength training: Lower body workout.";
+                break;
+            default:
+                workoutContainer.style.display = "none";
+                return;
+        }
+        workoutContainer.style.display = "block";
+    }
 });
-
-function getDayOfWeekOfMonth() {
-    const currentDate = new Date(); // Get current date
-    const currentDayOfMonth = currentDate.getDate(); // Get current day of the month
-    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1); // Get the first day of the month
-    const startingDayOfWeek = firstDayOfMonth.getDay(); // Get the day of the week for the first day of the month (0-6, 0: Sunday, 1: Monday, ..., 6: Saturday)
-    
-    // Calculate the day of the week for the current day of the month (1-7)
-    let dayOfWeek = (currentDayOfMonth + startingDayOfWeek - 1) % 7 + 1;
-    if (dayOfWeek === 0) {
-        dayOfWeek = 7; // Adjust Sunday to 7 instead of 0
-    }
-    
-    return dayOfWeek;
-}
-
-function getDayOfWeek(cellNumber) {
-    const currentDate = new Date(); // Get current date
-    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1); // Get the first day of the month
-    const startingDayOfWeek = firstDayOfMonth.getDay(); // Get the day of the week for the first day of the month (0-6, 0: Sunday, 1: Monday, ..., 6: Saturday)
-    
-    // Calculate the day of the week for the clicked cell
-    let dayOfWeek = (cellNumber + startingDayOfWeek - 1) % 7 + 1;
-    if (dayOfWeek === 0) {
-        dayOfWeek = 7; // Adjust Sunday to 7 instead of 0
-    }
-    
-    return dayOfWeek;
-}

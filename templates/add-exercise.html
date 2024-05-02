@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exercise List</title>
-    <link rel="stylesheet" href="static/styles.css"> <!-- Ensure your CSS styles the nav bar -->
+    <title>Add Exercise</title>
+    <link rel="stylesheet" href="static/styles.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="static/add-exercise.js"></script>
 </head>
 <body>
-    <!-- Navigation Header -->
     <header>
         <nav>
             <ul>
@@ -19,15 +17,24 @@
             </ul>
         </nav>
     </header>
-    <h1>Add Exercise</h1>
+    <div class="form-container">
+        <h1>Add Exercise</h1>
+        <form method="post" action="{{ url_for('add_exercise') }}">
+            <label for="name">Exercise Name:</label>
+            <input type="text" id="name" name="name" required>
+            
+            <label for="muscle_group">Muscle Group:</label>
+            <input type="text" id="muscle_group" name="muscle_group" required>
+
+            <label for="intensity">Intensity:</label>
+            <input type="text" id="intensity" name="intensity">
+
+            <label for="description">Description:</label>
+            <textarea id="description" name="description"></textarea>
+
+            <button type="submit">Add Exercise</button>
+        </form>
+    </div>
+    <script src="static/add-exercise.js"></script>
 </body>
-
-<button id="task-btn">DONE</button>
-
-<script>
-    // Define the URL in a script tag within the HTML
-    var exerciseListUrl = "{{ url_for('exercise_list') }}";
-</script>
-
-
 </html>
