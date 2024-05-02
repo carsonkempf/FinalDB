@@ -50,10 +50,6 @@ def exercise_list():
     return render_template('exercise-list.html')
 
 
-@app.route('/add-workout')
-def add_workout():
-    return render_template('add-workout.html')
-
 @app.route('/workout-list')
 def workout_list():
     return render_template('workout-list.html')
@@ -106,6 +102,44 @@ def delete_exercise(exercise_id):
         return jsonify({'success': True}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/add-workout', methods=['GET', 'POST'])
+def add_workout():
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        focus = request.form.get('focus', '')
+        intensity = request.form.get('intensity', '')
+
+        db = get_db()
+        db.execute('''
+            INSERT INTO Workout (name, description, focus, intensity)
+            VALUES (?, ?, ?, ?)
+        ''', (name, description, focus, intensity))
+        db.commit()
+        return redirect(url_for('workout_list'))
+    return render_template('add-workout.html')
+
+@app.route('/api/submit-exercises', methods=['POST'])
+def submit_exercises():
+    selected_ids = request.json['selectedIds']
+    # Logic to associate these exercises with a specific workout
+    # This is a placeholder for your actual database update logic
+    print("Selected exercises:", selected_ids)
+    return jsonify({'status': 'success'})
+
+@app.route('/api/toggle-exercise/<int:exercise_id>/<action>', methods=['POST'])
+def toggle_exercise(exercise_id, action):
+    db = get_db()
+    if action == 'add':
+        # Assume workout_id is known or fixed, adjust as needed
+        db.execute('INSERT INTO Exercise_In_Workout (exercise_id, workout_id) VALUES (?, ?)', (exercise_id, 1))
+    elif action == 'remove':
+        db.execute('DELETE FROM Exercise_In_Workout WHERE exercise_id = ? AND workout_id = ?', (exercise_id, 1))
+    db.commit()
+    return jsonify({'message': f'Exercise {action}ed successfully'})
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

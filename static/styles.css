@@ -2,24 +2,15 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    height: 100vh; /* Ensure body takes full height of the viewport */
+    background-color: #f0f0f0; /* Lighter background for the whole page */
+    color: #333;
+    height: 100vh; /* Full viewport height */
 }
 
 h1 {
-    color: #333;
+    color: #007BFF; /* Blue color for headings */
     text-align: center;
-}
-
-.exercise {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin-bottom: 10px;
-}
-
-.exercise h2 {
-    color: #007BFF;
-    margin-bottom: 10px;
+    padding: 20px 0; /* Spacing above and below the heading */
 }
 
 ul {
@@ -31,7 +22,40 @@ li {
     font-size: 14px;
     color: #555;
 }
+.container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Three columns layout */
+    gap: 30px; /* Spacing between containers */
+    padding: 20px;
+    max-width: 1200px;
+    margin: 20px auto; /* Centering the grid */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+}
 
+.item {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-radius: 5px;
+}
+
+.item h2 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+.item ul {
+    list-style-type: none;
+    padding: 0;
+    font-size: 0.8em;
+}
+
+.item li {
+    margin-bottom: 5px;
+}
 button {
     padding: 8px 15px;
     margin-right: 5px;
@@ -47,16 +71,68 @@ button:hover {
     background-color: #0056b3;
 }
 
-.edit-btn{
-    background-color: #2e34d8;
-}
-.delete-btn {
-    background-color: #dc3545;
+.exercises-container, .workouts-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Creates three equal columns */
+    gap: 30px; /* Spacing between columns */
+    padding: 20px; /* Padding around the grid */
+    max-width: 1200px; /* Maximum width of the grid */
+    margin: 0 auto; /* Centers the grid in the available space */
 }
 
-.delete-btn:hover {
-    background-color: #c82333;
+.exercise, .workout {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Aligns content spaced out vertically */
+    height: auto; /* Adjust height based on content */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 5px;
 }
+
+.exercise h2, .workout h2 {
+    color: #007BFF;
+    font-size: 1.2em; /* Appropriate font size for titles */
+    margin-bottom: 10px; /* Space below the title */
+}
+
+.exercise ul, .workout ul {
+    list-style-type: none;
+    padding: 0;
+    font-size: 0.8em;
+    margin: auto 0; /* Margins auto to push to bottom */
+}
+
+.exercise li, .workout li {
+    margin-bottom: 5px; /* Spacing between attributes */
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-around;
+}
+
+.edit-btn, .delete-btn {
+    padding: 6px 12px;
+    font-size: 0.8em;
+    color: #fff;
+    background-color: #5cb85c; /* Light green for edit */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.delete-btn {
+    background-color: #f0ad4e; /* Light orange for delete */
+}
+
+.edit-btn:hover, .delete-btn:hover {
+    opacity: 0.85;
+}
+
+
 
 nav {
     background: #333;
@@ -158,34 +234,12 @@ td:first-child:hover {
     background-color: #f9f9f9; /* Ensure hover applies to the first column */
 }
 
-.workout-container {
-    width: 50%;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #ffffff; /* White background */
-    border-radius: 10px; /* Rounded corners */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Subtle shadow for depth */
-    display: none; /* Initially hidden */
-    animation: fadeIn 0.3s ease-out forwards; /* Animation for when it appears */
-    position: relative;
-    top: 15%; /* Moves the container down by 15% of its parent container's height */
-}
 
 @keyframes fadeIn {
     0% { opacity: 0; }
     100% { opacity: 1; }
 }
 
-/* Styling for the headings and text inside the workout container */
-.workout-container h2 {
-    color: #007bff; /* Blue color for headings for a vibrant look */
-    text-align: center; /* Center-align the heading */
-}
-
-.workout-container p {
-    font-size: 16px; /* Larger font size for readability */
-    text-align: justify; /* Justified text for a clean look */
-}
 .form-container {
     width: 80%;
     margin: 20px auto;
@@ -206,4 +260,71 @@ input[type="text"], textarea {
     margin-bottom: 20px;
     border: 1px solid #ccc;
     border-radius: 4px;
+}
+
+.btn {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    text-align: center;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;  /* Removes underline from links */
+    margin-top: 10px;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+.toggle-btn {
+    width: 20px;
+    height: 20px;
+    margin: 5px;
+    border: 2px solid black; /* Solid black border for the button */
+    background-color: transparent; /* Transparent background when not selected */
+    cursor: pointer;
+}
+
+.toggle-btn.active {
+    background-color: black; /* Filled black when selected */
+}
+
+/* Styling for the exercise display in select-exercise.html */
+.exercise-select {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 5px;
+    align-items: center;
+    border: 1px solid #ddd;
+    padding: 5px;
+    margin-bottom: 5px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.exercise-select p {
+    margin: 0;
+    font-size: 0.8em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Toggle button specific styling */
+.toggle-btn {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    padding: 0;
+    border: 2px solid black;
+    background-color: white;
+    cursor: pointer;
+    justify-self: end;
+}
+
+.toggle-btn.active {
+    background-color: black;
 }
