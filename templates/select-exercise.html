@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Exercise</title>
-    <link rel="stylesheet" href="static/styles.css"> <!-- Ensure your CSS styles the nav bar -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="static/select-exercise.js"></script>
+    <script src="{{ url_for('static', filename='select-exercise.js') }}"></script>
 </head>
 <body>
-    <!-- Navigation Header -->
     <header>
         <nav>
             <ul>
@@ -19,11 +18,16 @@
             </ul>
         </nav>
     </header>
-    <h1>Select Exercise</h1>
-    <div id="exercises-container">
-        
+    <h1 id="workout-title">Workout ID: {{ workout_id }}</h1>
+    <div id="exercises-list-container">
+        {% for exercise in exercises %}
+        <div class="exercise-item">
+            <h4>{{ exercise.name }}</h4>
+            <p>Type: {{ exercise.type }}</p>
+            <p>Muscle Group: {{ exercise.muscle_group }}</p>
+            <p>Intensity: {{ exercise.intensity }}</p>
+        </div>
+        {% endfor %}
     </div>
-    <button id="task-btn">DONE</button>
 </body>
-
 </html>

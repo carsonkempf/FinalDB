@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Exercise</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('exercise_list') }}">Exercise List</a></li>
+                <li><a href="{{ url_for('workout_list') }}">Workout List</a></li>
+                <li><a href="{{ url_for('schedule') }}">Schedule</a></li>
+            </ul>
+        </nav>
+    </header>
+        <div class="form-container">
+            <h1>Edit Exercise</h1>
+            <form action="{{ url_for('edit_exercise', exercise_id=exercise.exercise_id) }}" method="post">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" value="{{ exercise.name }}" required>
+    
+                <label for="muscle_group">Muscle Group:</label>
+                <input type="text" id="muscle_group" name="muscle_group" value="{{ exercise.muscle_group }}" required>
+    
+                <label for="intensity">Intensity:</label>
+                <input type="text" id="intensity" name="intensity" value="{{ exercise.intensity }}">
+    
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" required>{{ exercise.description }}</textarea>
+    
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
+</body>
+</html>

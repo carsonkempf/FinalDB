@@ -1,32 +1,40 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('workouts-container');
+
     fetch('/api/workouts')
     .then(response => response.json())
     .then(data => {
-        const container = document.getElementById('workouts-container');
-        container.style.display = 'grid';
-        container.style.gridTemplateColumns = 'repeat(3, 1fr)'; // 3 columns
-        container.style.gap = '20px'; // Spacing between grid items
-
         data.forEach(item => {
             const workoutDiv = document.createElement('div');
+            workoutDiv.id = `workout-${item.workout_id}`;  // Set an ID for each workout div for easy access
             workoutDiv.className = 'workout';
 
             const nameHeader = document.createElement('h2');
             nameHeader.textContent = item.name;
             workoutDiv.appendChild(nameHeader);
 
-            const detailsList = document.createElement('ul');
-            Object.entries(item).forEach(([key, value]) => {
-                if (!['workout_id', 'workout_detail_id', 'name'].includes(key)) {
-                    const detail = document.createElement('li');
-                    detail.textContent = `${mapColumnToTitle(key)}: ${value}`;
-                    detailsList.appendChild(detail);
-                }
-            });
-            workoutDiv.appendChild(detailsList);
+            const detailsParagraph = document.createElement('p');
+            detailsParagraph.textContent = `Description: ${item.description}, Type: ${item.workout_type}, Intensity: ${item.intensity}, Muscle Group: ${item.muscle_group}, Rating: ${item.rating}`;
+            workoutDiv.appendChild(detailsParagraph);
+
+            if (item.exercises && item.exercises.length > 0) {
+                const exercisesHeader = document.createElement('h3');
+                exercisesHeader.textContent = 'Selected Exercises:';
+                workoutDiv.appendChild(exercisesHeader);
+
+                const exercisesList = document.createElement('ul');
+                item.exercises.forEach(exercise => {
+                    const exerciseItem = document.createElement('li');
+                    exerciseItem.textContent = `${exercise.name} (${exercise.type})`;
+                    exercisesList.appendChild(exerciseItem);
+                });
+                workoutDiv.appendChild(exercisesList);
+            }
 
             const editButton = createButton('Edit', 'edit-btn');
+            editButton.onclick = () => editWorkout(item.workout_id);
             const deleteButton = createButton('Delete', 'delete-btn');
+            deleteButton.onclick = () => deleteWorkout(item.workout_id, workoutDiv);
             workoutDiv.append(editButton, deleteButton);
 
             container.appendChild(workoutDiv);
@@ -35,20 +43,24 @@ document.addEventListener('DOMContentLoaded', function() {
     .catch(error => console.error('Error loading the workouts:', error));
 });
 
-function mapColumnToTitle(columnName) {
-    const titles = {
-        'description': 'Description',
-        'workout_type': 'Type',
-        'intensity': 'Intensity',
-        'muscle_group': 'Muscle Group',
-        'rating': 'Rating'
-    };
-    return titles[columnName] || columnName;
-}
-
 function createButton(text, className) {
     const button = document.createElement('button');
     button.textContent = text;
     button.className = className;
     return button;
+}
+
+function deleteWorkout(workoutId, workoutDiv) {
+    fetch(`/api/workouts/${workoutId}`, { method: 'DELETE' })
+    .then(response => {
+        if (response.ok) {
+            console.log('Workout deleted successfully');
+            workoutDiv.remove();  // Remove the workout div from the DOM
+        }
+    })
+    .catch(error => console.error('Error deleting workout:', error));
+}
+
+function editWorkout(workoutId) {
+    window.location.href = `/edit-workout/${workoutId}`;
 }

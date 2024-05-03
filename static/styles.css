@@ -125,7 +125,7 @@ button:hover {
 }
 
 .delete-btn {
-    background-color: #f0ad4e; /* Light orange for delete */
+    background-color: #d51b1b; /* Light orange for delete */
 }
 
 .edit-btn:hover, .delete-btn:hover {

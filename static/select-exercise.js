@@ -1,82 +1,77 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('exercises-list-container'); 
+
     fetch('/api/exercises')
     .then(response => response.json())
     .then(data => {
-        const container = document.getElementById('exercises-container');
-        data.forEach(item => {
-            const exerciseDiv = document.createElement('div');
-            exerciseDiv.className = 'exercise';
+        const seenExercises = new Set();  // A set to track seen exercise names
 
-            // Display the name and toggle button on the same line
-            const headerDiv = document.createElement('div');
-            headerDiv.className = 'exercise-header';
-            const nameHeader = document.createElement('h2');
-            nameHeader.textContent = item.name;
-            headerDiv.appendChild(nameHeader);
+        data.forEach(exercise => {
+            if (!seenExercises.has(exercise.name)) {  // Check if we've already processed this exercise
+                seenExercises.add(exercise.name);
 
-            const toggleButton = createToggleButton(item.exercise_id);
-            headerDiv.appendChild(toggleButton);
-            exerciseDiv.appendChild(headerDiv);
+                const exerciseDiv = document.createElement('div');
+                exerciseDiv.className = 'exercise-item';
 
-            // Display each attribute in a list below the header
-            const detailsList = document.createElement('ul');
-            detailsList.className = 'exercise-details';
-            Object.entries(item).forEach(([key, value]) => {
-                if (!['exercise_id', 'exercise_detail_id', 'name'].includes(key)) {
-                    const detail = document.createElement('li');
-                    detail.textContent = `${mapColumnToTitle(key)}: ${value}`;
-                    detailsList.appendChild(detail);
-                }
-            });
-            exerciseDiv.appendChild(detailsList);
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'exercise-checkbox';
+                checkbox.value = exercise.id;
 
-            container.appendChild(exerciseDiv);
+                const label = document.createElement('label');
+                label.textContent = `${exercise.name} - Type: ${exercise.type || 'N/A'}, Muscle Group: ${exercise.muscle_group}, Intensity: ${exercise.intensity}`;
+                label.insertBefore(checkbox, label.firstChild);  // Insert checkbox before label text
+
+                exerciseDiv.appendChild(label);
+                container.appendChild(exerciseDiv);
+            }
         });
+
+        // Create and append the 'Done' button
+        const doneButton = document.createElement('button');
+        doneButton.textContent = 'Done';
+        doneButton.addEventListener('click', submitSelectedExercises);
+        container.appendChild(doneButton);
     })
-    .catch(error => console.error('Error loading the exercises:', error));
+    .catch(error => {
+        console.error('Error loading the exercises:', error);
+        container.textContent = 'Failed to load exercises.';
+    });
 });
 
-function createToggleButton(exerciseId) {
-    const button = document.createElement('button');
-    button.className = 'toggle-btn';
-    button.onclick = () => toggleSelection(exerciseId, button);
-    return button;
-}
-
-function toggleSelection(exerciseId, button) {
-    const isActive = button.classList.toggle('active');
-
-    // Optionally, trigger any backend update or state change here
-}
-
-function mapColumnToTitle(columnName) {
-    const titles = {
-        'description': 'Description',
-        'exercise_type': 'Type',
-        'intensity': 'Intensity',
-        'muscle_group': 'Muscle Group',
-        'rating': 'Rating',
-        'sets': 'Sets',
-        'reps': 'Reps'
-    };
-    return titles[columnName] || columnName;
-}
-
-
-
-
 function submitSelectedExercises() {
-    const selectedButtons = document.querySelectorAll('.toggle-btn.active');
-    const selectedIds = Array.from(selectedButtons).map(btn => btn.dataset.exerciseId);
+    const selectedExercises = Array.from(document.querySelectorAll('.exercise-checkbox:checked'))
+                                  .map(checkbox => parseInt(checkbox.value, 10)); // Ensure IDs are integers
 
-    fetch('/api/submit-exercises', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ selectedIds })
-    })
-    .then(response => response.json())
-    .then(data => console.log('Submission successful', data))
-    .catch(error => console.error('Error submitting exercises:', error));
+    const urlParams = new URLSearchParams(window.location.search);
+    const workoutId = urlParams.get('workout_id');
+
+    console.log('Selected Exercises:', selectedExercises); // Debugging log
+    console.log('Workout ID:', workoutId); // Debugging log
+
+    if (workoutId && selectedExercises.length > 0) {
+        fetch(`/api/add-exercises-to-workout/${workoutId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ exercises: selectedExercises })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Response:', data); // Debugging log
+            if (data.success) {
+                alert('Exercises added successfully!');
+                window.location.href = `/add-workout.html?workout_id=${workoutId}`; // Redirect on success
+            } else {
+                alert('Failed to add exercises to the workout');
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting exercises:', error);
+            alert('There was an error processing your request.');
+        });
+    } else {
+        alert('No exercises selected or workout ID missing.');
+    }
 }
