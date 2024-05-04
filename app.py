@@ -38,6 +38,20 @@ def schedule():
     days = cur.fetchall()
     return render_template('schedule.html', days=days)
 
+@app.route('/schedule.html')
+def schedule_page():
+    return render_template('schedule.html')
+
+@app.route('/api/schedule-workout/<day_id>/<workout_id>', methods=['POST'])
+def schedule_workout(day_id, workout_id):
+    try:
+        db = get_db()
+        db.execute("INSERT INTO Workout_On_Day (day_id, workout_id) VALUES (?, ?)", (day_id, workout_id))
+        db.commit()
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/exercises')
 def api_exercises():
     db = get_db()
@@ -53,6 +67,25 @@ def api_workouts():
     cur.execute("SELECT * FROM Workout")
     workouts = cur.fetchall()
     return jsonify([dict(x) for x in workouts])
+
+@app.route('/api/select-workout')
+def api_select_workout():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM Workout')
+        workouts = cursor.fetchall()
+        conn.close()
+
+        # Convert the database rows to a list of dictionaries
+        workouts_list = []
+        for workout in workouts:
+            workouts_list.append(dict(workout))
+
+        return jsonify(workouts_list)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/exercises/<int:exercise_id>', methods=['DELETE'])
 def delete_exercise(exercise_id):
@@ -193,6 +226,49 @@ def create_workout():
     db.execute("INSERT INTO Workout (workout_id, name, description) VALUES (?, ?, ?)", (workout_id, 'New Workout', 'Description here'))
     db.commit()
     return redirect(url_for('select_exercise', workout_id=workout_id))
+
+def generate_day_id():
+    day_uuid = uuid.uuid4()
+    return str(day_uuid)
+
+@app.route('/api/generate-day-id', methods=['GET'])
+def generate_day_id_endpoint():
+    day_id = generate_day_id()
+    return jsonify(day_id=day_id)
+
+@app.route('/api/add-day', methods=['POST'])
+def add_day():
+    data = request.get_json()
+    day_id = data.get('day_id')
+    if day_id:
+        try:
+            db = get_db()
+            db.execute("INSERT INTO Schedule (day_id) VALUES (?)", (day_id,))
+            db.commit()
+            return jsonify({'success': True}), 200
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+    else:
+        return jsonify({'success': False, 'error': 'No day ID provided'}), 400
+
+@app.route('/select-workout.html')
+def select_workout():
+    return render_template('select-workout.html')
+
+@app.route('/api/workouts-by-day')
+def get_workouts_by_day():
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("""
+        SELECT Day.day_id, Day.date, Workout.name, Workout.description 
+        FROM Day
+        JOIN Workout_On_Day ON Day.day_id = Workout_On_Day.day_id
+        JOIN Workout ON Workout_On_Day.workout_id = Workout.workout_id
+    """)
+    workouts = cur.fetchall()
+    workouts_by_day = {day['date']: f"{day['name']}: {day['description']}" for day in workouts}
+    return jsonify(workouts_by_day)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

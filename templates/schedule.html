@@ -18,28 +18,29 @@
             </ul>
         </nav>        
     </header>
-    <h1>Schedule Workouts</h1>
-    <div class="table-container">
-        <table id="scheduleTable">
-            <thead>
-                <tr>
-                    <th>Sun</th>
-                    <th>Mon</th>
-                    <th>Tue</th>
-                    <th>Wed</th>
-                    <th>Thu</th>
-                    <th>Fri</th>
-                    <th>Sat</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- JavaScript will generate rows here -->
-            </tbody>
-        </table>
+    <div class="container">
+        <div class="schedule-table-container">
+            <table id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th>Sun</th>
+                        <th>Mon</th>
+                        <th>Tue</th>
+                        <th>Wed</th>
+                        <th>Thu</th>
+                        <th>Fri</th>
+                        <th>Sat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Schedule table rows will be generated here -->
+                </tbody>
+            </table>
+        </div>
+        <div id="scheduleContainer" class="schedule-container">
+            <!-- Schedule details will be displayed here -->
+        </div>
     </div>
-    <div class="workout-container" id="workoutContainer" style="display:none;">
-        <h2>Workout Details</h2>
-        <p id="workoutDetails"></p>
-    </div>
+    <script src="schedule.js"></script>
 </body>
 </html>
