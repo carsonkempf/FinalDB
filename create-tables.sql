@@ -7,39 +7,38 @@ DROP TABLE IF EXISTS Workout;
 DROP TABLE IF EXISTS Exercise;
 DROP TABLE IF EXISTS Exercise_Detail;
 
--- Create Exercise_Detail table with additional columns
+-- Create Exercise_Detail table with adjusted columns
 CREATE TABLE Exercise_Detail (
     exercise_detail_id INTEGER PRIMARY KEY,
     description TEXT,
     equipment_needed TEXT,
-    weight TEXT,           -- Additional column
-    intensity TEXT,        -- Additional column
-    rating INTEGER,        -- Additional column
-    sets INTEGER,          -- Additional column
-    reps INTEGER           -- Additional column
+    weight INTEGER,
+    intensity TEXT CHECK (intensity IN ('Light', 'Moderate', 'Vigorous')),
+    rating INTEGER CHECK (rating >= 1 AND rating <= 10),
+    sets INTEGER,
+    reps INTEGER
 );
 
--- Create Exercise table with additional columns
+-- Create Exercise table with specific constraints and columns adjusted
 CREATE TABLE Exercise (
     exercise_id INTEGER PRIMARY KEY,
     name TEXT,
     exercise_detail_id INTEGER,
-    rating INTEGER,        -- Additional column
-    intensity TEXT,        -- Additional column
-    muscle_group TEXT,     -- Additional column
-    description TEXT,      -- Additional column
-    exercise_type TEXT,    -- Additional column
+    rating INTEGER CHECK (rating >= 1 AND rating <= 10),
+    intensity TEXT CHECK (intensity IN ('Light', 'Moderate', 'Vigorous')),
+    muscle_group TEXT CHECK (muscle_group IN ('Chest', 'Back', 'Shoulders', 'Arms', 'Abdominals', 'Lower Back', 'Hips', 'Thighs', 'Legs', 'Adductors and Abductors')),
+    description TEXT,
     FOREIGN KEY (exercise_detail_id) REFERENCES Exercise_Detail(exercise_detail_id)
 );
 
--- Create Workout table with additional columns
+-- Create Workout table with focus constrained to specific values
 CREATE TABLE Workout (
     workout_id INTEGER PRIMARY KEY,
     name TEXT,
     description TEXT,
-    rating INTEGER,        -- Additional column
-    focus TEXT,            -- Additional column
-    intensity TEXT         -- Additional column
+    rating INTEGER CHECK (rating >= 1 AND rating <= 10),
+    focus TEXT CHECK (focus IN ('Strength Training', 'Cardiovascular Health', 'Weight Loss', 'Flexibility', 'Balance and Coordination', 'Indurance Training', 'High-Intensity Interval Training (HIIT)', 'Muscle Toning', 'Core Strengthening', 'Functional Fitness', 'Rehabilitation and Recovery', 'Sports Specific Training', 'Bodybuilding', 'Circuit Training', 'Mind-Body Wellness')),
+    intensity TEXT CHECK (intensity IN ('Light', 'Moderate', 'Vigorous'))
 );
 
 -- Create Day table

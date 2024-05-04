@@ -202,16 +202,32 @@ table {
     margin: 0 auto;
 }
 .popup-container {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #f0f0f0;
-    padding: 20px;
+    background-color: #fff;
     border: 1px solid #ccc;
     border-radius: 5px;
+    padding: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    z-index: 1000; /* Ensure it appears above other elements */
+    margin-bottom: 20px;
+    width: fit-content; /* Adjust width to fit content */
+    height: fit-content; /* Adjust height to fit content */
+}
+
+.popup-container p {
+    margin: 10px 0;
+}
+
+.popup-container button {
+    padding: 8px 15px;
+    font-size: 14px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.popup-container button:hover {
+    background-color: #0056b3;
 }
 
 th, td {
@@ -340,19 +356,6 @@ input[type="text"], textarea {
     background-color: black;
 }
 
-.schedule-container {
-    display: none;
-    position: fixed;
-    bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #f0f0f0;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    margin: 0 auto;
-}
 
 .schedule-wrapper {
     margin-right: 20px; /* Add some spacing between schedule table and container */

@@ -34,23 +34,52 @@ def workout_list():
 def schedule():
     db = get_db()
     cur = db.cursor()
-    cur.execute("SELECT * FROM Day JOIN Workout_On_Day ON Day.day_id = Workout_On_Day.day_id")
-    days = cur.fetchall()
-    return render_template('schedule.html', days=days)
+    # Perform a JOIN operation between Day and Workout_On_Day to get the workout_id for each day
+    # Then JOIN with Workout table to get workout details
+    cur.execute("""
+        SELECT d.*, w.name AS workout_name, w.description AS workout_description
+        FROM Day d
+        JOIN Workout_On_Day wod ON d.day_id = wod.day_id
+        JOIN Workout w ON wod.workout_id = w.workout_id
+    """)
+    days_with_workouts = cur.fetchall()
+    return render_template('schedule.html', days=days_with_workouts)
+
 
 @app.route('/schedule.html')
 def schedule_page():
     return render_template('schedule.html')
 
+scheduled_workouts = []
+
+# Route to join a workout with a day
 @app.route('/api/schedule-workout/<day_id>/<workout_id>', methods=['POST'])
 def schedule_workout(day_id, workout_id):
     try:
-        db = get_db()
-        db.execute("INSERT INTO Workout_On_Day (day_id, workout_id) VALUES (?, ?)", (day_id, workout_id))
-        db.commit()
-        return jsonify({'success': True}), 200
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        # Parse day_id and workout_id as integers
+        day_id = int(day_id)
+        workout_id = int(workout_id)
+
+        # Add the scheduled workout to the list
+        scheduled_workouts.append({'day_id': day_id, 'workout_id': workout_id})
+
+        return jsonify({'message': 'Workout scheduled successfully'}), 200
+    except ValueError:
+        return jsonify({'error': 'Invalid day_id or workout_id'}), 400
+
+# Route to get all workouts scheduled for a specific day
+@app.route('/api/workouts-by-day/<day_id>')
+def get_workouts_by_day(day_id):
+    try:
+        # Parse day_id as integer
+        day_id = int(day_id)
+
+        # Filter scheduled workouts for the given day_id
+        day_workouts = [sw['workout_id'] for sw in scheduled_workouts if sw['day_id'] == day_id]
+
+        return jsonify({'day_id': day_id, 'workouts': day_workouts}), 200
+    except ValueError:
+        return jsonify({'error': 'Invalid day_id'}), 400
 
 @app.route('/api/exercises')
 def api_exercises():
@@ -254,21 +283,6 @@ def add_day():
 @app.route('/select-workout.html')
 def select_workout():
     return render_template('select-workout.html')
-
-@app.route('/api/workouts-by-day')
-def get_workouts_by_day():
-    db = get_db()
-    cur = db.cursor()
-    cur.execute("""
-        SELECT Day.day_id, Day.date, Workout.name, Workout.description 
-        FROM Day
-        JOIN Workout_On_Day ON Day.day_id = Workout_On_Day.day_id
-        JOIN Workout ON Workout_On_Day.workout_id = Workout.workout_id
-    """)
-    workouts = cur.fetchall()
-    workouts_by_day = {day['date']: f"{day['name']}: {day['description']}" for day in workouts}
-    return jsonify(workouts_by_day)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
