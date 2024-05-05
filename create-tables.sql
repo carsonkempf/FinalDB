@@ -50,14 +50,14 @@ CREATE TABLE Exercise_With_Detail (
     FOREIGN KEY (detail_id) REFERENCES Exercise_Detail(exercise_detail_id)
 );
 
--- Create Exercise_In_Workout table
 CREATE TABLE Exercise_In_Workout (
-    exercise_in_workout_id INTEGER PRIMARY KEY,
     exercise_id INTEGER,
     workout_id INTEGER,
+    PRIMARY KEY (exercise_id, workout_id),
     FOREIGN KEY (exercise_id) REFERENCES Exercise(exercise_id),
     FOREIGN KEY (workout_id) REFERENCES Workout(workout_id)
 );
+
 
 -- Create Workout_On_Day table
 CREATE TABLE Workout_On_Day (
@@ -67,3 +67,46 @@ CREATE TABLE Workout_On_Day (
     FOREIGN KEY (workout_id) REFERENCES Workout(workout_id),
     FOREIGN KEY (day_id) REFERENCES Day(day_id)
 );
+
+
+-- Inserting sample data into Exercise_Detail
+INSERT INTO Exercise_Detail (exercise_detail_id, description, equipment_needed, weight, intensity, rating, sets, reps)
+VALUES 
+(1, 'Push-up, chest emphasis', 'None', NULL, 'Moderate', 8, 4, 10),
+(2, 'Pull-up, upper back and biceps focus', 'Pull-up bar', NULL, 'Vigorous', 9, 3, 8);
+
+-- Inserting sample data into Exercise
+INSERT INTO Exercise (exercise_id, name, exercise_detail_id, rating, intensity, muscle_group, description)
+VALUES 
+(1, 'Push-up', 1, 8, 'Moderate', 'Chest', 'Standard push-up, no equipment needed'),
+(2, 'Pull-up', 2, 9, 'Vigorous', 'Back', 'Pull-ups with wide grip');
+
+-- Inserting sample data into Workout
+INSERT INTO Workout (workout_id, name, description, rating, focus, intensity)
+VALUES 
+(1, 'Basic Strength', 'Introductory level strength workout', 7, 'Strength Training', 'Moderate'),
+(2, 'Cardio Blast', 'High energy cardio workout', 8, 'Cardiovascular Health', 'Vigorous');
+
+-- Inserting sample data into Day
+INSERT INTO Day (day_id, date, note)
+VALUES 
+(1, '2024-05-05', 'Leg day'),
+(2, '2024-05-06', 'Rest day');
+
+-- Inserting sample data into Exercise_With_Detail
+INSERT INTO Exercise_With_Detail (exercise_with_detail_id, exercise_id, detail_id)
+VALUES 
+(1, 1, 1),
+(2, 2, 2);
+
+-- Inserting sample data into Exercise_In_Workout
+INSERT INTO Exercise_In_Workout (exercise_id, workout_id)
+VALUES 
+(1, 1),
+(2, 2);
+
+-- Inserting sample data into Workout_On_Day
+INSERT INTO Workout_On_Day (workout_on_day_id, workout_id, day_id)
+VALUES 
+(1, 1, 1),
+(2, 2, 2);

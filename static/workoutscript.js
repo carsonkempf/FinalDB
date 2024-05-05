@@ -63,5 +63,22 @@ function deleteWorkout(workoutId, workoutDiv) {
 }
 
 function editWorkout(workoutId) {
-    window.location.href = `/edit-workout/${workoutId}`;
+    // Redirect to edit-workout page if workoutId exists
+    if (workoutId) {
+        window.location.href = `/edit-workout/${workoutId}`;
+    } else {
+        // Redirect to add-workout page with a generated workout ID
+        fetch('/api/generate-workout-id')
+        .then(response => response.json())
+        .then(data => {
+            const generatedWorkoutId = data.workout_id;
+            window.location.href = `/add-or-edit-workout?workout_id=${generatedWorkoutId}`;
+        })
+        .catch(error => console.error('Error generating workout ID:', error));
+    }
+}
+
+function redirectToAddWorkout() {
+    const workoutId = getWorkoutIdFromUrl() || generateWorkoutId();
+    window.location.href = `/add-or-edit-workout?workout_id=${workoutId}`;
 }

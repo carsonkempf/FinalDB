@@ -181,7 +181,7 @@ nav ul li a:hover {
 }
 
 
-#add-exercise-btn, #add-workout-btn, #select-exercise-btn {
+#add-exercise-btn, #add-workout-btn, #select-exercise-link {
     display: block;
     width: 200px;
     margin: 20px auto 0; /* Top margin to lower the buttons slightly */
@@ -195,7 +195,9 @@ nav ul li a:hover {
     text-align: center;
     text-decoration: none;
 }
-
+.exercise-checkbox {
+    margin-right: 8px; /* Adjust spacing between checkbox and label */
+}
 /* Hover effect for both buttons */
 #add-exercise-btn:hover, #add-workout-btn:hover {
     background-color: #3d7ea6; /* Darker shade for hover effect */

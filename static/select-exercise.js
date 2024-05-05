@@ -1,11 +1,23 @@
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('exercises-list-container');
+    const workoutId = getWorkoutIdFromUrl();
 
-    fetch('/api/exercises')
+    // Ensure the workout ID is properly retrieved.
+    if (!workoutId) {
+        container.textContent = 'Workout ID is missing from the URL.';
+        return;
+    }
+
+    // Fetch exercises linked to the specific workout ID from the backend.
+    fetch(`/api/exercises-in-workouts/${workoutId}`)
         .then(response => response.json())
         .then(data => {
-            const seenExercises = new Set(); // A set to track seen exercise names
+            if (data.length === 0) {
+                container.textContent = 'No exercises available to display.';
+                return;
+            }
 
+            // Create elements for each exercise and append to the container.
             data.forEach(exercise => {
                 const exerciseDiv = document.createElement('div');
                 exerciseDiv.className = 'exercise-item';
@@ -13,63 +25,68 @@ document.addEventListener('DOMContentLoaded', function() {
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.className = 'exercise-checkbox';
-                checkbox.value = exercise.id;
+                checkbox.id = `exercise-${exercise.exercise_id}`;
+                checkbox.value = exercise.exercise_id;
+                checkbox.checked = exercise.is_selected;  // Assumes is_selected is provided by the API.
 
                 const label = document.createElement('label');
-                label.textContent = `${exercise.name} - Type: ${exercise.type || 'N/A'}, Muscle Group: ${exercise.muscle_group}, Intensity: ${exercise.intensity}`;
-                label.insertBefore(checkbox, label.firstChild); // Insert checkbox before label text
+                label.setAttribute('for', `exercise-${exercise.exercise_id}`);
+                label.textContent = `${exercise.exercise_name} - Intensity: ${exercise.intensity}, Muscle Group: ${exercise.muscle_group}`;
 
+                label.prepend(checkbox);  // Place the checkbox before the label text.
                 exerciseDiv.appendChild(label);
                 container.appendChild(exerciseDiv);
-            });
 
-            // Create and append the 'Done' button
-            const doneButton = document.createElement('button');
-            doneButton.textContent = 'Done';
-            doneButton.addEventListener('click', submitSelectedExercises);
-            container.appendChild(doneButton);
+                // Add an event listener to handle changes in checkbox state.
+                checkbox.addEventListener('change', () => {
+                    const method = checkbox.checked ? 'POST' : 'DELETE';
+                    const url = `/api/exercise-to-workout/${method.toLowerCase()}/${workoutId}/${exercise.exercise_id}`;
+
+                    fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        console.log(result.message);
+                        if (!result.success) {
+                            alert(result.message);
+                            checkbox.checked = !checkbox.checked;  // Revert checkbox on failure.
+                        }
+                    })
+                    .catch(error => {
+                        console.error('API error:', error);
+                        alert('Failed to update exercise status.');
+                        checkbox.checked = !checkbox.checked;  // Revert checkbox on failure.
+                    });
+                });
+            });
         })
         .catch(error => {
             console.error('Error loading the exercises:', error);
             container.textContent = 'Failed to load exercises.';
         });
-});
 
-function submitSelectedExercises() {
-    const selectedExercises = Array.from(document.querySelectorAll('.exercise-checkbox:checked'))
-        .map(checkbox => parseInt(checkbox.value, 10)); // Ensure IDs are integers
+        const doneButton = document.createElement('button');
+        doneButton.textContent = 'Done';
+        doneButton.addEventListener('click', () => {
+            const workoutId = getWorkoutIdFromUrl();
+            if (workoutId) {
+                window.location.href = `/add-workout/${workoutId}`;
+            } else {
+                console.error('Workout ID not found in URL.');
+            }
+        });
+        container.appendChild(doneButton);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const workoutId = urlParams.get('workout_id');
-
-    console.log('Selected Exercises:', selectedExercises); // Debugging log
-    console.log('Workout ID:', workoutId); // Debugging log
-
-    if (workoutId && selectedExercises.length > 0) {
-        fetch(`/api/add-exercises-to-workout/${workoutId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    exercises: selectedExercises
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Response:', data); // Debugging log
-                if (data.success) {
-                    alert('Exercises added successfully!');
-                    window.location.href = `/add-workout.html?workout_id=${workoutId}`; // Redirect on success
-                } else {
-                    alert('Failed to add exercises to the workout');
-                }
-            })
-            .catch(error => {
-                console.error('Error submitting exercises:', error);
-                alert('There was an error processing your request.');
-            });
-    } else {
-        alert('No exercises selected or workout ID missing.');
+    function getWorkoutIdFromUrl() {
+        // Extract the Workout ID from the URL path.
+        const urlSegments = window.location.pathname.split('/');
+        const workoutId = urlSegments[urlSegments.length - 1];
+        console.log('Workout ID from URL:', workoutId);
+        return workoutId;
     }
-}
+    
+});
