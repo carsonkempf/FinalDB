@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
     doneButton.addEventListener('click', () => {
         const workoutId = getWorkoutIdFromUrl();
         if (workoutId) {
-            window.location.href = `/add-workout/${workoutId}`;
+            window.location.href = `/add-or-edit-workout/${workoutId}`;
         } else {
             console.error('Workout ID not found in URL.');
         }

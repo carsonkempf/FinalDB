@@ -54,10 +54,48 @@ def exercise_list():
 @app.route('/workout-list')
 def workout_list():
     db = get_db()
-    cur = db.cursor()
-    cur.execute("SELECT * FROM Workout")
-    workouts = cur.fetchall()
+    workouts = db.execute("SELECT * FROM Workout").fetchall()
     return render_template('workout-list.html', workouts=workouts)
+
+@app.route('/workout', defaults={'workout_id': None})
+@app.route('/workout/<int:workout_id>', methods=['GET', 'POST'])
+def workout(workout_id):
+    db = get_db()
+    if request.method == 'GET':
+        if workout_id is not None:
+            # Fetch the existing workout details
+            workout = db.execute("SELECT * FROM Workout WHERE workout_id = ?", (workout_id,)).fetchone()
+            if workout:
+                workout_exercises = db.execute("""
+                    SELECT e.*
+                    FROM Exercise e
+                    JOIN Exercise_In_Workout eiw ON e.exercise_id = eiw.exercise_id
+                    WHERE eiw.workout_id = ?
+                """, (workout_id,)).fetchall()
+                return render_template('add-workout.html', workout=workout, workout_id=workout_id, exercises=workout_exercises)
+            else:
+                # If no workout is found with the given ID, redirect to the creation page
+                return redirect(url_for('workout'))
+        # Render the form for creating a new workout if no workout_id is provided
+        return render_template('add-workout.html', workout=None, workout_id=None)
+    elif request.method == 'POST':
+        # Handle the form submission for both creating and updating workouts
+        name = request.form['name']
+        description = request.form.get('description', '')
+        intensity = request.form.get('intensity', '')
+        focus = request.form.get('focus', '')
+        if workout_id is None:
+            # Create a new workout
+            db.execute("INSERT INTO Workout (name, description, intensity, focus) VALUES (?, ?, ?, ?)",
+                       (name, description, intensity, focus))
+            db.commit()
+            return redirect(url_for('workout_list'))  # Assuming you have a route to display all workouts
+        else:
+            # Update existing workout
+            db.execute("UPDATE Workout SET name=?, description=?, intensity=?, focus=? WHERE workout_id=?",
+                       (name, description, intensity, focus, workout_id))
+            db.commit()
+            return redirect(url_for('workout', workout_id=workout_id))
 
 @app.route('/schedule')
 def schedule():
@@ -171,9 +209,33 @@ def api_exercises():
 def api_workouts():
     db = get_db()
     cur = db.cursor()
-    cur.execute("SELECT * FROM Workout")
-    workouts = cur.fetchall()
-    return jsonify([dict(x) for x in workouts])
+    cur.execute("""
+        SELECT w.*, e.name AS exercise_name, e.intensity AS exercise_intensity, e.muscle_group
+        FROM Workout w
+        LEFT JOIN Exercise_In_Workout eiw ON w.workout_id = eiw.workout_id
+        LEFT JOIN Exercise e ON eiw.exercise_id = e.exercise_id
+        ORDER BY w.workout_id, e.exercise_id
+    """)
+    workouts = {}
+    for row in cur.fetchall():
+        workout_id = row['workout_id']
+        if workout_id not in workouts:
+            workouts[workout_id] = {
+                'workout_id': workout_id,
+                'name': row['name'],
+                'description': row['description'],
+                'intensity': row['intensity'],
+                'focus': row['focus'],
+                'exercises': []
+            }
+        if row['exercise_name']:  # Ensure there's an exercise linked
+            workouts[workout_id]['exercises'].append({
+                'name': row['exercise_name'],
+                'intensity': row['exercise_intensity'],
+                'muscle_group': row['muscle_group']
+            })
+    return jsonify(list(workouts.values()))
+
 
 @app.route('/api/exercises/<int:exercise_id>', methods=['DELETE'])
 def delete_exercise(exercise_id):
@@ -265,59 +327,55 @@ def edit_exercise(exercise_id):
         exercise = cur.fetchone()
         return render_template('edit-exercise.html', exercise=exercise)
 
-@app.route('/add-or-edit-workout/', defaults={'workout_id': None})
+@app.route('/add-or-edit-workout/', methods=['GET', 'POST'])
 @app.route('/add-or-edit-workout/<int:workout_id>', methods=['GET', 'POST'])
-def add_or_edit_workout(workout_id):
-    db = get_db()
+def add_or_edit_workout(workout_id=None):
     if request.method == 'POST':
+        db = get_db()
         name = request.form.get('name', 'Default Workout Name')
         description = request.form.get('description', '')
         intensity = request.form.get('intensity', 'Medium')
         focus = request.form.get('focus', 'General')
-
+        
         if workout_id is None:
             workout_id = generate_workout_id()
             db.execute("INSERT INTO Workout (workout_id, name, description, intensity, focus) VALUES (?, ?, ?, ?, ?)",
                        (workout_id, name, description, intensity, focus))
-            db.commit()
-            return redirect(url_for('add_or_edit_workout', workout_id=workout_id))
-
-        db.execute("UPDATE Workout SET name=?, description=?, intensity=?, focus=? WHERE workout_id=?",
-                   (name, description, intensity, focus, workout_id))
+            app.logger.info(f"Inserted new workout with ID={workout_id}")
+        else:
+            db.execute("UPDATE Workout SET name=?, description=?, intensity=?, focus=? WHERE workout_id=?",
+                       (name, description, intensity, focus, workout_id))
+            app.logger.info(f"Updated workout with ID={workout_id}")
         db.commit()
         return redirect(url_for('workout_list'))
-
-    workout = None
-    if workout_id:
-        workout = db.execute("SELECT * FROM Workout WHERE workout_id = ?", (workout_id,)).fetchone()
     else:
-        workout_id = generate_workout_id()  # Generate a new workout ID for a new workout
-
-    # Redirect to add-workout.html with the workout ID in the URL
-    return redirect(url_for('add_workout', workout_id=workout_id))
-
-@app.route('/add-workout/<int:workout_id>', methods=['GET'])
-def add_workout(workout_id):
-    db = get_db()
-    
-    # Fetch workout details if workout_id is provided
-    workout = None
-    if workout_id:
+        db = get_db()
+        if workout_id is None:
+            workout_id = generate_workout_id()
         workout = db.execute("SELECT * FROM Workout WHERE workout_id = ?", (workout_id,)).fetchone()
-        
-        # Fetch exercises corresponding to the workout from the database
-        workout_exercises = db.execute("""
+        exercises = db.execute("""
             SELECT e.*
             FROM Exercise e
             JOIN Exercise_In_Workout eiw ON e.exercise_id = eiw.exercise_id
             WHERE eiw.workout_id = ?
         """, (workout_id,)).fetchall()
-        
-        # Pass the exercises to the template
-        return render_template('add-workout.html', workout=workout, workout_id=workout_id, exercises=workout_exercises)
+        return render_template('add-workout.html', workout=workout, workout_id=workout_id, exercises=exercises)
 
-    # Render add-workout.html template with workout details and workout ID
-    return render_template('add-workout.html', workout=workout, workout_id=workout_id)
+@app.route('/insert-workout/<int:workout_id>', methods=['POST'])
+def insert_workout(workout_id):
+    db = get_db()
+    name = request.form.get('name', 'Default Workout Name')
+    description = request.form.get('description', '')
+    intensity = request.form.get('intensity', 'Medium')
+    focus = request.form.get('focus', 'General')
+
+    # Insert the workout into the database
+    db.execute("INSERT INTO Workout (workout_id, name, description, intensity, focus) VALUES (?, ?, ?, ?, ?)",
+               (workout_id, name, description, intensity, focus))
+    db.commit()
+
+    return jsonify({'success': True})
+
 
 @app.route('/api/exercise-to-workout/add/<int:workout_id>/<int:exercise_id>', methods=['POST', 'DELETE'])
 def add_or_remove_exercise_from_workout(workout_id, exercise_id):
@@ -360,10 +418,23 @@ def add_or_remove_exercise_from_workout(workout_id, exercise_id):
 
 @app.route('/api/joined-exercises/<int:workout_id>')
 def get_joined_exercises(workout_id):
-    # Fetch joined exercises for the specified workout_id from the database
-    # Return the data as JSON
-    joined_exercises = db.get_joined_exercises(workout_id)
-    return jsonify(joined_exercises)
+    db = get_db()  # Connect to the database
+    cur = db.cursor()
+    try:
+        cur.execute("""
+            SELECT e.*, ed.*
+            FROM Exercise e
+            JOIN Exercise_Detail ed ON e.exercise_detail_id = ed.exercise_detail_id
+            JOIN Exercise_In_Workout eiw ON e.exercise_id = eiw.exercise_id
+            WHERE eiw.workout_id = ?
+        """, (workout_id,))
+        joined_exercises = cur.fetchall()
+        return jsonify(joined_exercises)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cur.close()  # Close the cursor
+        db.close()  # Close the database connection
 
 @app.route('/api/exercise-to-workout/<int:exercise_id>/<int:workout_id>', methods=['POST', 'DELETE'])
 def exercise_to_workout(exercise_id, workout_id):
@@ -412,22 +483,29 @@ def exercises_with_workouts(workout_id):
     db = get_db()
     cur = db.cursor()
     cur.execute("""
-        SELECT e.exercise_name, w.name as workout_name
+        SELECT e.name AS exercise_name, w.name AS workout_name
         FROM Exercise e
-        JOIN Exercise_In_Workout eiw ON e.id = eiw.exercise_id
-        JOIN Workout w ON eiw.workout_id = w.id
-        WHERE w.id = ?
+        JOIN Exercise_In_Workout eiw ON e.exercise_id = eiw.exercise_id
+        JOIN Workout w ON eiw.workout_id = w.workout_id
+        WHERE w.workout_id = ?
     """, (workout_id,))
-    exercises = [{'exercise_name': row[0], 'workout_name': row[1]} for row in cur.fetchall()]
+    exercises = [{'exercise_name': row['exercise_name'], 'workout_name': row['workout_name']} for row in cur.fetchall()]
     return jsonify(exercises)
+
 
 
 @app.route('/api/workouts/<int:workout_id>', methods=['DELETE'])
 def delete_workout(workout_id):
     db = get_db()
-    db.execute("DELETE FROM Workout WHERE workout_id = ?", (workout_id,))
-    db.commit()
-    return jsonify({'success': True}), 200
+    try:
+        db.execute("DELETE FROM Workout WHERE workout_id = ?", (workout_id,))
+        db.commit()
+        return jsonify({'success': True}), 200
+    except Exception as e:
+        db.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 
 
 
@@ -453,6 +531,12 @@ def generate_workout_id():
     workout_uuid = uuid.uuid4()
     return int(workout_uuid.int % (2**31 - 1))
 
+# API endpoint to generate a workout ID
+@app.route('/api/generate-workout-id', methods=['GET'])
+def generate_workout_id_endpoint():
+    workout_id = generate_workout_id()
+    return jsonify(workout_id=workout_id)
+
 @app.route('/api/workouts', methods=['POST'])
 def create_workout():
     try:
@@ -461,15 +545,15 @@ def create_workout():
         description = data.get('description')
         intensity = data.get('intensity')
         focus = data.get('focus')
-
         db = get_db()
         db.execute("INSERT INTO Workout (name, description, intensity, focus) VALUES (?, ?, ?, ?)",
                    (name, description, intensity, focus))
         db.commit()
-
-        return jsonify({'success': True, 'message': 'Workout created successfully'}), 201
+        flash('Workout created successfully', 'success')  # Flash a success message
+        return redirect(url_for('workout_list'))  # Redirect to the workout list page
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 
 def generate_day_id():
