@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add an event listener to handle changes in checkbox state.
                 checkbox.addEventListener('change', () => {
                     const method = checkbox.checked ? 'POST' : 'DELETE';
-                    const url = `/api/exercise-to-workout/${method.toLowerCase()}/${workoutId}/${exercise.exercise_id}`;
+                    const url = `/api/exercise-to-workout/add/${workoutId}/${exercise.exercise_id}`;
 
                     fetch(url, {
                         method: method,
@@ -69,17 +69,17 @@ document.addEventListener('DOMContentLoaded', function() {
             container.textContent = 'Failed to load exercises.';
         });
 
-        const doneButton = document.createElement('button');
-        doneButton.textContent = 'Done';
-        doneButton.addEventListener('click', () => {
-            const workoutId = getWorkoutIdFromUrl();
-            if (workoutId) {
-                window.location.href = `/add-workout/${workoutId}`;
-            } else {
-                console.error('Workout ID not found in URL.');
-            }
-        });
-        container.appendChild(doneButton);
+    const doneButton = document.createElement('button');
+    doneButton.textContent = 'Done';
+    doneButton.addEventListener('click', () => {
+        const workoutId = getWorkoutIdFromUrl();
+        if (workoutId) {
+            window.location.href = `/add-workout/${workoutId}`;
+        } else {
+            console.error('Workout ID not found in URL.');
+        }
+    });
+    container.appendChild(doneButton);
 
     function getWorkoutIdFromUrl() {
         // Extract the Workout ID from the URL path.
@@ -88,5 +88,4 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Workout ID from URL:', workoutId);
         return workoutId;
     }
-    
 });

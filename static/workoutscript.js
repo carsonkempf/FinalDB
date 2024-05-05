@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
             workoutDiv.appendChild(nameHeader);
 
             const detailsParagraph = document.createElement('p');
-            detailsParagraph.textContent = `Description: ${item.description}, Type: ${item.workout_type}, Intensity: ${item.intensity}, Muscle Group: ${item.muscle_group}, Rating: ${item.rating}`;
+            detailsParagraph.textContent = `Description: ${item.description}, Intensity: ${item.intensity}, Focus: ${item.focus}`;
             workoutDiv.appendChild(detailsParagraph);
 
             if (item.exercises && item.exercises.length > 0) {
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const exercisesList = document.createElement('ul');
                 item.exercises.forEach(exercise => {
                     const exerciseItem = document.createElement('li');
-                    exerciseItem.textContent = `${exercise.name} (${exercise.type})`;
+                    exerciseItem.textContent = `${exercise.name} - Intensity: ${exercise.intensity}, Muscle Group: ${exercise.muscle_group}`;
                     exercisesList.appendChild(exerciseItem);
                 });
                 workoutDiv.appendChild(exercisesList);
@@ -76,9 +76,4 @@ function editWorkout(workoutId) {
         })
         .catch(error => console.error('Error generating workout ID:', error));
     }
-}
-
-function redirectToAddWorkout() {
-    const workoutId = getWorkoutIdFromUrl() || generateWorkoutId();
-    window.location.href = `/add-or-edit-workout?workout_id=${workoutId}`;
 }
