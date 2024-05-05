@@ -1,17 +1,39 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Get the select exercise button element by its class
-    const selectExerciseBtn = document.querySelector('.select-exercise-btn');
+    const selectExerciseBtn = document.getElementById('select-exercise-btn');
+    const addWorkoutBtn = document.getElementById('add-workout-btn');
 
     if (selectExerciseBtn) {
         selectExerciseBtn.addEventListener('click', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const workoutId = urlParams.get('workout_id');
-
-            if (workoutId) {
-                window.location.href = `/select-exercise.html?workout_id=${workoutId}`; // Ensure the extension is correct as per your setup
-            } else {
-                console.error('Workout ID not found in URL.');
-            }
+            redirectToSelectExercise();
         });
+    } else {
+        console.error('Select exercise button not found.');
+    }
+
+    if (addWorkoutBtn) {
+        addWorkoutBtn.addEventListener('click', function() {
+            redirectToAddWorkout();
+        });
+    } else {
+        console.error('Add workout button not found.');
     }
 });
+
+function redirectToSelectExercise() {
+    const workoutId = getWorkoutIdFromUrl();
+
+    if (workoutId) {
+        window.location.href = `/select-exercise.html?workout_id=${workoutId}`;
+    } else {
+        console.error('Workout ID not found in URL.');
+    }
+}
+
+function redirectToAddWorkout() {
+    window.location.href = '/add-workout.html';
+}
+
+function getWorkoutIdFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('workout_id');
+}

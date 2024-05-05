@@ -35,7 +35,8 @@ document.addEventListener('DOMContentLoaded', function() {
             editButton.onclick = () => editWorkout(item.workout_id);
             const deleteButton = createButton('Delete', 'delete-btn');
             deleteButton.onclick = () => deleteWorkout(item.workout_id, workoutDiv);
-            workoutDiv.append(editButton, deleteButton);
+            workoutDiv.appendChild(editButton);
+            workoutDiv.appendChild(deleteButton);
 
             container.appendChild(workoutDiv);
         });

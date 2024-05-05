@@ -18,16 +18,5 @@
             </ul>
         </nav>
     </header>
-    <h1 id="workout-title">Workout ID: {{ workout_id }}</h1>
-    <div id="exercises-list-container">
-        {% for exercise in exercises %}
-        <div class="exercise-item">
-            <h4>{{ exercise.name }}</h4>
-            <p>Type: {{ exercise.type }}</p>
-            <p>Muscle Group: {{ exercise.muscle_group }}</p>
-            <p>Intensity: {{ exercise.intensity }}</p>
-        </div>
-        {% endfor %}
-    </div>
 </body>
 </html>

@@ -1,11 +1,4 @@
--- Drop tables if they exist
-DROP TABLE IF EXISTS Workout_On_Day;
-DROP TABLE IF EXISTS Exercise_In_Workout;
-DROP TABLE IF EXISTS Exercise_With_Detail;
-DROP TABLE IF EXISTS Day;
-DROP TABLE IF EXISTS Workout;
-DROP TABLE IF EXISTS Exercise;
-DROP TABLE IF EXISTS Exercise_Detail;
+
 
 -- Create Exercise_Detail table with adjusted columns
 CREATE TABLE Exercise_Detail (
@@ -37,14 +30,14 @@ CREATE TABLE Workout (
     name TEXT,
     description TEXT,
     rating INTEGER CHECK (rating >= 1 AND rating <= 10),
-    focus TEXT CHECK (focus IN ('Strength Training', 'Cardiovascular Health', 'Weight Loss', 'Flexibility', 'Balance and Coordination', 'Indurance Training', 'High-Intensity Interval Training (HIIT)', 'Muscle Toning', 'Core Strengthening', 'Functional Fitness', 'Rehabilitation and Recovery', 'Sports Specific Training', 'Bodybuilding', 'Circuit Training', 'Mind-Body Wellness')),
+    focus TEXT CHECK (focus IN ('Strength Training', 'Cardiovascular Health', 'Weight Loss', 'Flexibility', 'Balance and Coordination', 'Endurance Training', 'High-Intensity Interval Training (HIIT)', 'Muscle Toning', 'Core Strengthening', 'Functional Fitness', 'Rehabilitation and Recovery', 'Sports Specific Training', 'Bodybuilding', 'Circuit Training', 'Mind-Body Wellness')),
     intensity TEXT CHECK (intensity IN ('Light', 'Moderate', 'Vigorous'))
 );
 
--- Create Day table
+-- Create Day table with DATE type for the date column
 CREATE TABLE Day (
     day_id INTEGER PRIMARY KEY,
-    date TEXT,
+    date DATE,
     note TEXT
 );
 
