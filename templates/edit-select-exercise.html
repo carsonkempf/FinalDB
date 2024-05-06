@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Selected Exercises</title>
-    <link rel="stylesheet" href="static/styles.css">
+    <title>Select Exercise</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='edit-select-exercise.js') }}"></script>
 </head>
 <body>
     <header>
@@ -16,7 +18,10 @@
             </ul>
         </nav>
     </header>
-    <h1>Edit Selected Exercises</h1>
-    <!-- Display selected exercises here -->
+    <div class="form-container">
+        <h1>Select Exercises</h1>
+        <div id="exercises-list-container"></div>
+        
+    </div>
 </body>
 </html>

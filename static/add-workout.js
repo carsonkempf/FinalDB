@@ -89,12 +89,22 @@ function submitWorkoutForm(workoutId) {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error('Network response was not ok.');
+        }
+    })
     .then(data => {
         if (data.success) {
             window.location.href = '/workout-list'; // Redirect to workout list on success
         } else {
-            alert('Error creating or updating workout: ' + data.message);
+            if (data.error === 'unique_constraint') {
+                alert('Workout with this ID already exists. Please choose a different ID.');
+            } else {
+                alert('Error creating or updating workout: ' + data.message);
+            }
         }
     })
     .catch(error => {
@@ -102,6 +112,7 @@ function submitWorkoutForm(workoutId) {
         alert('Failed to submit workout.');
     });
 }
+
 
 function generateWorkoutId() {
     return fetch('/api/generate-workout-id')

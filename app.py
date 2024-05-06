@@ -4,6 +4,7 @@ import os
 import sqlite3
 
 app = Flask(__name__)
+app.secret_key = 'ctk'
 def create_database(db_name, schema_file):
     """
     Create a new SQLite database based on the SQL schema file if the database does not already exist.
@@ -261,6 +262,10 @@ def api_exercises_by_workout(workout_id):
 def select_exercise(workout_id):
     return render_template('select-exercise.html', workout_id=workout_id)
 
+@app.route('/edit-select-exercise/<int:workout_id>')
+def edit_select_exercise(workout_id):
+    return render_template('edit-select-exercise.html', workout_id=workout_id)
+
 @app.route('/add-exercise', methods=['GET', 'POST'])
 def add_exercise():
     if request.method == 'POST':
@@ -360,7 +365,7 @@ def add_or_edit_workout(workout_id=None):
             WHERE eiw.workout_id = ?
         """, (workout_id,)).fetchall()
         return render_template('add-workout.html', workout=workout, workout_id=workout_id, exercises=exercises)
-
+    
 @app.route('/insert-workout/<int:workout_id>', methods=['POST'])
 def insert_workout(workout_id):
     db = get_db()
@@ -369,12 +374,16 @@ def insert_workout(workout_id):
     intensity = request.form.get('intensity', 'Medium')
     focus = request.form.get('focus', 'General')
 
-    # Insert the workout into the database
-    db.execute("INSERT INTO Workout (workout_id, name, description, intensity, focus) VALUES (?, ?, ?, ?, ?)",
-               (workout_id, name, description, intensity, focus))
-    db.commit()
-
-    return jsonify({'success': True})
+    try:
+        # Insert the workout into the database
+        db.execute("INSERT INTO Workout (workout_id, name, description, intensity, focus) VALUES (?, ?, ?, ?, ?)",
+                   (workout_id, name, description, intensity, focus))
+        db.commit()
+        flash('Workout created successfully', 'success')  # Flash a success message
+        return redirect(url_for('workout_list'))  # Redirect to the workout list page
+    except sqlite3.IntegrityError:
+        flash('Workout with ID={} already exists. Please choose a different ID.'.format(workout_id), 'error')
+        return redirect(url_for('workout_list'))
 
 
 @app.route('/api/exercise-to-workout/add/<int:workout_id>/<int:exercise_id>', methods=['POST', 'DELETE'])
@@ -525,11 +534,12 @@ def edit_workout(workout_id):
         cur = db.cursor()
         cur.execute("SELECT * FROM Workout WHERE workout_id = ?", (workout_id,))
         workout = cur.fetchone()
-        return render_template('edit-workout.html', workout=workout)
+        if workout:
+            return render_template('edit-workout.html', workout=workout, workout_id=workout_id)
+        else:
+            flash("Workout not found", "error")
+            return redirect(url_for('workout_list'))
 
-def generate_workout_id():
-    workout_uuid = uuid.uuid4()
-    return int(workout_uuid.int % (2**31 - 1))
 
 # API endpoint to generate a workout ID
 @app.route('/api/generate-workout-id', methods=['GET'])
