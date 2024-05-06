@@ -1,6 +1,7 @@
 from flask import Flask, flash, render_template, jsonify, g, request, redirect, url_for
 import uuid
 import os
+import random
 import sqlite3
 
 app = Flask(__name__)
@@ -97,6 +98,14 @@ def workout(workout_id):
                        (name, description, intensity, focus, workout_id))
             db.commit()
             return redirect(url_for('workout', workout_id=workout_id))
+
+def generate_workout_id():
+    """
+    Generate a unique workout ID as an integer.
+    """
+    # Generate a random integer between 1000 and 9999
+    workout_id = random.randint(1000, 9999)
+    return workout_id
 
 @app.route('/schedule')
 def schedule():

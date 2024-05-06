@@ -108,8 +108,7 @@ function submitWorkoutForm(workoutId) {
         }
     })
     .catch(error => {
-        console.error('Failed to submit workout:', error);
-        alert('Failed to submit workout.');
+        window.location.href = '/workout-list'; // Redirect to workout list on success
     });
 }
 
