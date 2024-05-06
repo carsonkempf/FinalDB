@@ -6,6 +6,30 @@ import sqlite3
 
 app = Flask(__name__)
 app.secret_key = 'ctk'
+
+
+@app.route('/api/schedule-workout/<int:day_id>/<int:workout_id>', methods=['POST'])
+def schedule_workout(day_id, workout_id):
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cur = conn.cursor()
+    try:
+        # Insert the workout and day IDs into the 'Workout_On_Day' table
+        cur.execute(
+            "INSERT INTO workout_on_day (workout_id, day_id) VALUES (%s, %s)",
+            (workout_id, day_id)
+        )
+        conn.commit()
+        return jsonify({"message": "Workout scheduled successfully"}), 200
+    except psycopg2.Error as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 400
+    finally:
+        cur.close()
+        conn.close()
+
 def create_database(db_name, schema_file):
     """
     Create a new SQLite database based on the SQL schema file if the database does not already exist.
@@ -39,11 +63,72 @@ def get_db():
         g.sqlite_db.row_factory = sqlite3.Row
     return g.sqlite_db
 
+def get_db_connection():
+    try:
+        # Connect to the SQLite database by specifying the path to your database file
+        conn = sqlite3.connect('workoutdatabase.db')
+        return conn
+    except sqlite3.Error as e:
+        print(f"Database connection failed: {e}")
+        return None
+
+    
+@app.route('/api/workout-to-day/<int:day_id>/<int:workout_id>', methods=['POST', 'DELETE'])
+def manage_workout_day(day_id, workout_id):
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cur = conn.cursor()
+    try:
+        if request.method == 'POST':
+            cur.execute(
+                "INSERT INTO workout_on_day (workout_id, day_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                (workout_id, day_id)
+            )
+            conn.commit()
+            return jsonify({"message": "Workout added to day successfully", "success": True}), 200
+        elif request.method == 'DELETE':
+            cur.execute(
+                "DELETE FROM workout_on_day WHERE workout_id = %s AND day_id = %s",
+                (workout_id, day_id)
+            )
+            conn.commit()
+            return jsonify({"message": "Workout removed from day successfully", "success": True}), 200
+    except psycopg2.Error as e:
+        conn.rollback()
+        return jsonify({"error": str(e), "success": False}), 400
+    finally:
+        cur.close()
+        conn.close()
+
 @app.teardown_appcontext
 def close_db(exception=None):
     db = g.pop('sqlite_db', None)
     if db is not None:
         db.close()
+
+@app.route('/api/workouts-by-day/<int:day_id>', methods=['GET'])
+def get_workouts_by_day(day_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT w.workout_id, w.name, w.description, w.focus, w.intensity
+            FROM Workout w
+            JOIN Workout_On_Day wd ON w.workout_id = wd.workout_id
+            WHERE wd.day_id = ?
+        """, (day_id,))
+        workouts = cur.fetchall()
+        if workouts:
+            return jsonify([{'workout_id': wk[0], 'name': wk[1], 'description': wk[2], 'focus': wk[3], 'intensity': wk[4]} for wk in workouts]), 200
+        else:
+            return jsonify({'message': 'No workouts found for this day'}), 404  # Not Found if no workouts
+    except sqlite3.Error as e:
+        return jsonify({'error': str(e)}), 400  # Bad Request if there's a SQL error
+    finally:
+        cur.close()
+
 
 @app.route('/')
 def exercise_list():
@@ -119,27 +204,6 @@ def schedule():
     """)
     days_with_workouts = cur.fetchall()
     return render_template('schedule.html', days=days_with_workouts)
-
-scheduled_workouts = []
-
-@app.route('/api/schedule-workout/<day_id>/<workout_id>', methods=['POST'])
-def schedule_workout(day_id, workout_id):
-    try:
-        day_id = int(day_id)
-        workout_id = int(workout_id)
-        scheduled_workouts.append({'day_id': day_id, 'workout_id': workout_id})
-        return jsonify({'message': 'Workout scheduled successfully'}), 200
-    except ValueError:
-        return jsonify({'error': 'Invalid day_id or workout_id'}), 400
-
-@app.route('/api/workouts-by-day/<day_id>')
-def get_workouts_by_day(day_id):
-    try:
-        day_id = int(day_id)
-        day_workouts = [sw['workout_id'] for sw in scheduled_workouts if sw['day_id'] == day_id]
-        return jsonify({'day_id': day_id, 'workouts': day_workouts}), 200
-    except ValueError:
-        return jsonify({'error': 'Invalid day_id'}), 400
 
 @app.route('/api/day-workouts/<day_id>')
 def api_day_workouts(day_id):
@@ -457,7 +521,7 @@ def get_joined_exercises(workout_id):
 @app.route('/api/exercise-to-workout/<int:exercise_id>/<int:workout_id>', methods=['POST', 'DELETE'])
 def exercise_to_workout(exercise_id, workout_id):
     try:
-        connection = sqlite3.connect('your_database.db')
+        connection = sqlite3.connect('workoutdatabase.db')
         cursor = connection.cursor()
 
         if request.method == 'POST':
