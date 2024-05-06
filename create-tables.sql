@@ -69,44 +69,78 @@ CREATE TABLE Workout_On_Day (
 );
 
 
--- Inserting sample data into Exercise_Detail
+-- Inserting additional data into Exercise_Detail
 INSERT INTO Exercise_Detail (exercise_detail_id, description, equipment_needed, weight, intensity, rating, sets, reps)
 VALUES 
-(1, 'Push-up, chest emphasis', 'None', NULL, 'Moderate', 8, 4, 10),
-(2, 'Pull-up, upper back and biceps focus', 'Pull-up bar', NULL, 'Vigorous', 9, 3, 8);
+(3, 'Squats, lower body strength', 'Barbell', 20, 'Vigorous', 8, 5, 12),
+(4, 'Bench Press, chest and triceps builder', 'Bench and barbell', 40, 'Moderate', 9, 4, 8),
+(5, 'Deadlift, overall body strength', 'Barbell', 50, 'Vigorous', 9, 3, 5),
+(6, 'Bicep curls, biceps isolation', 'Dumbbells', 10, 'Moderate', 7, 3, 10),
+(7, 'Tricep dips, tricep isolation', 'Parallel bars', NULL, 'Moderate', 8, 4, 10),
+(8, 'Shoulder press, shoulder strength', 'Dumbbells', 15, 'Vigorous', 8, 4, 8),
+(9, 'Lunges, leg toning and strength', 'None', NULL, 'Light', 6, 5, 12),
+(10, 'Plank, core strengthening', 'None', NULL, 'Light', 8, 4, 60),
+(11, 'Leg press, quadriceps focus', 'Leg press machine', 70, 'Vigorous', 9, 4, 10),
+(12, 'Lat pulldowns, back width and strength', 'Cable machine', 35, 'Moderate', 8, 4, 10);
 
--- Inserting sample data into Exercise
+-- Inserting additional data into Exercise
 INSERT INTO Exercise (exercise_id, name, exercise_detail_id, rating, intensity, muscle_group, description)
 VALUES 
-(1, 'Push-up', 1, 8, 'Moderate', 'Chest', 'Standard push-up, no equipment needed'),
-(2, 'Pull-up', 2, 9, 'Vigorous', 'Back', 'Pull-ups with wide grip');
+(3, 'Squats', 3, 8, 'Vigorous', 'Legs', 'Barbell squats targeting thighs and glutes'),
+(4, 'Bench Press', 4, 9, 'Moderate', 'Chest', 'Flat bench press for chest mass'),
+(5, 'Deadlift', 5, 9, 'Vigorous', 'Back', 'Deadlifts engage the entire posterior chain'),
+(6, 'Bicep Curls', 6, 7, 'Moderate', 'Arms', 'Curls with dumbbells for bicep growth'),
+(7, 'Tricep Dips', 7, 8, 'Moderate', 'Arms', 'Dips on parallel bars to strengthen triceps'),
+(8, 'Shoulder Press', 8, 8, 'Vigorous', 'Shoulders', 'Press overhead for shoulder development'),
+(9, 'Lunges', 9, 6, 'Light', 'Legs', 'Lunges for leg endurance and strength'),
+(10, 'Plank', 10, 8, 'Light', 'Core', 'Static plank for core stability'),
+(11, 'Leg Press', 11, 9, 'Vigorous', 'Legs', 'Leg press machine for quad growth'),
+(12, 'Lat Pulldowns', 12, 8, 'Moderate', 'Back', 'Wide-grip lat pulldowns for upper back');
 
--- Inserting sample data into Workout
+-- Inserting additional data into Workout
 INSERT INTO Workout (workout_id, name, description, rating, focus, intensity)
 VALUES 
-(1, 'Basic Strength', 'Introductory level strength workout', 7, 'Strength Training', 'Moderate'),
-(2, 'Cardio Blast', 'High energy cardio workout', 8, 'Cardiovascular Health', 'Vigorous');
+(3, 'Leg Killer', 'Intense leg workout', 9, 'Strength Training', 'Vigorous'),
+(4, 'Arm Day', 'Biceps and triceps workout', 7, 'Muscle Toning', 'Moderate'),
+(5, 'Core Blast', 'Core strengthening routines', 8, 'Core Strengthening', 'Moderate');
 
--- Inserting sample data into Day
+-- Inserting additional data into Day
 INSERT INTO Day (day_id, date, note)
 VALUES 
-(1, '2024-05-05', 'Leg day'),
-(2, '2024-05-06', 'Rest day');
+(3, '2024-05-07', 'Core workout day'),
+(4, '2024-05-08', 'Free day, no workouts');
 
--- Inserting sample data into Exercise_With_Detail
+-- Inserting additional data into Exercise_With_Detail
 INSERT INTO Exercise_With_Detail (exercise_with_detail_id, exercise_id, detail_id)
 VALUES 
-(1, 1, 1),
-(2, 2, 2);
+(3, 3, 3),
+(4, 4, 4),
+(5, 5, 5),
+(6, 6, 6),
+(7, 7, 7),
+(8, 8, 8),
+(9, 9, 9),
+(10, 10, 10),
+(11, 11, 11),
+(12, 12, 12);
 
--- Inserting sample data into Exercise_In_Workout
+-- Inserting additional data into Exercise_In_Workout
 INSERT INTO Exercise_In_Workout (exercise_id, workout_id)
 VALUES 
-(1, 1),
-(2, 2);
+(3, 3),
+(4, 4),
+(5, 3),
+(6, 4),
+(7, 4),
+(8, 3),
+(9, 5),
+(10, 5),
+(11, 3),
+(12, 4);
 
--- Inserting sample data into Workout_On_Day
+-- Inserting additional data into Workout_On_Day
 INSERT INTO Workout_On_Day (workout_on_day_id, workout_id, day_id)
 VALUES 
-(1, 1, 1),
-(2, 2, 2);
+(3, 3, 3),
+(4, 4, 3),
+(5, 5, 3);
