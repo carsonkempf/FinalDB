@@ -1,14 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
-    let workoutId = getWorkoutIdFromUrl();
+    const workoutId = getWorkoutIdFromUrl();
+
     if (!workoutId) {
         generateWorkoutId().then(newId => {
-            workoutId = newId;
-            updateUrlWithWorkoutId(workoutId);
-            initializePage(workoutId);
+            updateUrlWithWorkoutId(newId);
+            initializePage(newId);
         });
     } else {
-        // Remove any additional workout ID parameters from the URL
-        removeExtraWorkoutIdFromUrl();
         initializePage(workoutId);
     }
 });
@@ -82,35 +80,30 @@ function removeExerciseFromWorkout(exerciseId, workoutId) {
 }
 
 function submitWorkoutForm(workoutId) {
-    const formData = new FormData(document.getElementById('workout-form'));
-    const actionUrl = `/insert-workout/${workoutId}`; // New route for insertion
+    const form = document.getElementById('workout-form');
+    const formData = new FormData(form);
 
-    fetch(actionUrl, {
+    fetch(`/insert-workout/${workoutId}`, {
         method: 'POST',
         body: formData
     })
     .then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error('Network response was not ok.');
+        if (!response.ok) {
+            throw new Error('Error submitting form data');
         }
+        return response.json();
     })
     .then(data => {
         if (data.success) {
-            window.location.href = '/workout-list'; // Redirect to workout list on success
+            window.location.href = '/workout-list';
         } else {
-            if (data.error === 'unique_constraint') {
-                alert('Workout with this ID already exists. Please choose a different ID.');
-            } else {
-                alert('Error creating or updating workout: ' + data.message);
-            }
+            alert('Error: ' + data.message);
         }
     })
-    .catch(error => {
-        window.location.href = '/workout-list'; // Redirect to workout list on success
-    });
+    .catch(error => alert('Network Error: ' + error));
 }
+
+
 
 
 function generateWorkoutId() {

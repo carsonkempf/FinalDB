@@ -28,14 +28,20 @@ document.addEventListener("DOMContentLoaded", function() {
         // Popup container for displaying day info and workouts
         const popupContainer = document.createElement("div");
         popupContainer.className = "popup-container";
-        popupContainer.appendChild(createDayIdElement(dayId));
+
+        // Always visible elements
+        const dayIdElement = createDayIdElement(dayId);
+        const scheduleButton = createScheduleButton(dayId);
+        popupContainer.appendChild(dayIdElement);
+        popupContainer.appendChild(scheduleButton);
+
+        // Container for workouts that might be empty
+        const workoutsContainer = document.createElement("div");
+        workoutsContainer.className = "workouts-container";
+        popupContainer.appendChild(workoutsContainer);
 
         // Fetch and display workouts for the day
-        fetchWorkoutsForDay(dayId, popupContainer);
-
-        // Add button to schedule a new workout
-        const scheduleButton = createScheduleButton(dayId);
-        popupContainer.appendChild(scheduleButton);
+        fetchWorkoutsForDay(dayId, workoutsContainer);
 
         scheduleContainer.appendChild(popupContainer);
         scheduleContainer.style.display = "block";  // Make container visible
@@ -105,7 +111,11 @@ document.addEventListener("DOMContentLoaded", function() {
     function createScheduleButton(dayId) {
         const button = document.createElement("button");
         button.textContent = "Schedule Workout";
-        button.addEventListener("click", () => window.location.href = `/select-workout.html?day_id=${dayId}`);
+        button.addEventListener("click", () => {
+            const url = `/select-workout/${dayId}`;
+            console.log("Navigating to URL:", url); // Debug statement to check URL
+            window.location.href = url;
+        });
         return button;
     }
 

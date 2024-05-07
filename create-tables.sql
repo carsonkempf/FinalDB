@@ -68,7 +68,6 @@ CREATE TABLE Workout_On_Day (
     FOREIGN KEY (day_id) REFERENCES Day(day_id)
 );
 
-
 -- Inserting additional data into Exercise_Detail
 INSERT INTO Exercise_Detail (exercise_detail_id, description, equipment_needed, weight, intensity, rating, sets, reps)
 VALUES 
@@ -86,16 +85,18 @@ VALUES
 -- Inserting additional data into Exercise
 INSERT INTO Exercise (exercise_id, name, exercise_detail_id, rating, intensity, muscle_group, description)
 VALUES 
-(3, 'Squats', 3, 8, 'Vigorous', 'Legs', 'Barbell squats targeting thighs and glutes'),
+(3, 'Squats', 3, 8, 'Vigorous', 'Thighs', 'Barbell squats targeting thighs and glutes'),
 (4, 'Bench Press', 4, 9, 'Moderate', 'Chest', 'Flat bench press for chest mass'),
 (5, 'Deadlift', 5, 9, 'Vigorous', 'Back', 'Deadlifts engage the entire posterior chain'),
 (6, 'Bicep Curls', 6, 7, 'Moderate', 'Arms', 'Curls with dumbbells for bicep growth'),
 (7, 'Tricep Dips', 7, 8, 'Moderate', 'Arms', 'Dips on parallel bars to strengthen triceps'),
 (8, 'Shoulder Press', 8, 8, 'Vigorous', 'Shoulders', 'Press overhead for shoulder development'),
-(9, 'Lunges', 9, 6, 'Light', 'Legs', 'Lunges for leg endurance and strength'),
-(10, 'Plank', 10, 8, 'Light', 'Core', 'Static plank for core stability'),
-(11, 'Leg Press', 11, 9, 'Vigorous', 'Legs', 'Leg press machine for quad growth'),
+(9, 'Lunges', 9, 6, 'Light', 'Thighs', 'Lunges for leg endurance and strength'),
+(10, 'Plank', 10, 8, 'Light', 'Abdominals', 'Static plank for core stability'),
+(11, 'Leg Press', 11, 9, 'Vigorous', 'Thighs', 'Leg press machine for quad growth'),
 (12, 'Lat Pulldowns', 12, 8, 'Moderate', 'Back', 'Wide-grip lat pulldowns for upper back');
+
+
 
 -- Inserting additional data into Workout
 INSERT INTO Workout (workout_id, name, description, rating, focus, intensity)

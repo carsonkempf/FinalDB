@@ -1,4 +1,5 @@
 from flask import Flask, flash, render_template, jsonify, g, request, redirect, url_for
+import psycopg2
 import uuid
 import os
 import random
@@ -6,7 +7,6 @@ import sqlite3
 
 app = Flask(__name__)
 app.secret_key = 'ctk'
-
 
 @app.route('/api/schedule-workout/<int:day_id>/<int:workout_id>', methods=['POST'])
 def schedule_workout(day_id, workout_id):
@@ -72,7 +72,27 @@ def get_db_connection():
         print(f"Database connection failed: {e}")
         return None
 
-    
+@app.route('/update-exercise/<int:exercise_id>', methods=['POST'])
+def update_exercise(exercise_id):
+    data = request.form
+    db = get_db()
+    db.execute("""
+        UPDATE Exercise_Detail SET
+        description = ?,
+        equipment_needed = ?,
+        weight = ?,
+        intensity = ?,
+        rating = ?,
+        sets = ?,
+        reps = ?
+        WHERE exercise_detail_id = ?
+    """, (data['description'], data['equipment_needed'], data['weight'], data['intensity'], data['rating'], data['sets'], data['reps'], exercise_id))
+    db.commit()
+    return jsonify({'success': True, 'message': 'Exercise updated successfully'})
+
+
+
+
 @app.route('/api/workout-to-day/<int:day_id>/<int:workout_id>', methods=['POST', 'DELETE'])
 def manage_workout_day(day_id, workout_id):
     conn = get_db_connection()
@@ -82,25 +102,28 @@ def manage_workout_day(day_id, workout_id):
     cur = conn.cursor()
     try:
         if request.method == 'POST':
+            # Using ? placeholders for SQLite
             cur.execute(
-                "INSERT INTO workout_on_day (workout_id, day_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                "INSERT INTO workout_on_day (workout_id, day_id) VALUES (?, ?) ON CONFLICT DO NOTHING",
                 (workout_id, day_id)
             )
             conn.commit()
-            return jsonify({"message": "Workout added to day successfully", "success": True}), 200
+            return jsonify({"success": True, "message": "Workout added to day successfully"}), 200
         elif request.method == 'DELETE':
+            # Using ? placeholders for SQLite
             cur.execute(
-                "DELETE FROM workout_on_day WHERE workout_id = %s AND day_id = %s",
+                "DELETE FROM workout_on_day WHERE workout_id = ? AND day_id = ?",
                 (workout_id, day_id)
             )
             conn.commit()
-            return jsonify({"message": "Workout removed from day successfully", "success": True}), 200
-    except psycopg2.Error as e:
+            return jsonify({"success": True, "message": "Workout removed from day successfully"}), 200
+    except sqlite3.Error as e:
         conn.rollback()
-        return jsonify({"error": str(e), "success": False}), 400
+        return jsonify({"success": False, "message": str(e)}), 400
     finally:
         cur.close()
         conn.close()
+
 
 @app.teardown_appcontext
 def close_db(exception=None):
@@ -111,6 +134,11 @@ def close_db(exception=None):
 @app.route('/api/workouts-by-day/<int:day_id>', methods=['GET'])
 def get_workouts_by_day(day_id):
     conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    # Ensure the connection uses the sqlite3.Row row factory
+    conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     try:
         cur.execute("""
@@ -120,14 +148,71 @@ def get_workouts_by_day(day_id):
             WHERE wd.day_id = ?
         """, (day_id,))
         workouts = cur.fetchall()
+
+        # Convert each row to a dictionary
         if workouts:
-            return jsonify([{'workout_id': wk[0], 'name': wk[1], 'description': wk[2], 'focus': wk[3], 'intensity': wk[4]} for wk in workouts]), 200
+            workouts_list = [{'workout_id': wk['workout_id'], 'name': wk['name'], 'description': wk['description'], 'focus': wk['focus'], 'intensity': wk['intensity']} for wk in workouts]
+            return jsonify(workouts_list), 200
         else:
-            return jsonify({'message': 'No workouts found for this day'}), 404  # Not Found if no workouts
+            return jsonify([]), 200
     except sqlite3.Error as e:
-        return jsonify({'error': str(e)}), 400  # Bad Request if there's a SQL error
+        print(f"SQL error: {e}")
+        return jsonify({'error': str(e)}), 400
     finally:
         cur.close()
+        if conn:
+            conn.close()  # Ensure the connection is closed after processing
+
+@app.route('/api/workouts')
+def get_workouts():
+    db = get_db()
+    try:
+        workouts = db.execute('''
+            SELECT w.workout_id, w.name, w.description, w.intensity, w.focus,
+                   e.exercise_id, e.name as exercise_name, e.description as exercise_description, 
+                   e.muscle_group, ed.intensity as detail_intensity
+            FROM Workout w
+            JOIN Exercise_In_Workout eiw ON w.workout_id = eiw.workout_id
+            JOIN Exercise e ON eiw.exercise_id = e.exercise_id
+            JOIN Exercise_Detail ed ON e.exercise_detail_id = ed.exercise_detail_id
+        ''').fetchall()
+
+        workouts_dict = {}
+        for workout in workouts:
+            if workout['workout_id'] not in workouts_dict:
+                workouts_dict[workout['workout_id']] = {
+                    'workout_id': workout['workout_id'],
+                    'name': workout['name'],
+                    'description': workout['description'],
+                    'intensity': workout['intensity'],
+                    'focus': workout['focus'],
+                    'exercises': []
+                }
+            workouts_dict[workout['workout_id']]['exercises'].append({
+                'exercise_id': workout['exercise_id'],
+                'name': workout['exercise_name'],
+                'description': workout['exercise_description'],
+                'intensity': workout['detail_intensity'],
+                'muscle_group': workout['muscle_group']
+            })
+
+        return jsonify(list(workouts_dict.values()))
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/exercises')
+def get_all_exercises():
+    db = get_db()
+    exercises = db.execute('SELECT * FROM Exercise').fetchall()
+    return jsonify([dict(row) for row in exercises])
+
+@app.route('/api/exercises-in-workouts/<int:workoutId>')
+def get_exercises_by_workout(workoutId):
+    db = get_db()
+    exercises = db.execute('SELECT e.* FROM Exercise e JOIN Exercise_In_Workout eiw ON eiw.exercise_id = e.exercise_id WHERE eiw.workout_id = ?', (workoutId,)).fetchall()
+    return jsonify([dict(row) for row in exercises])
+
 
 
 @app.route('/')
@@ -138,11 +223,20 @@ def exercise_list():
     exercises = cur.fetchall()
     return render_template('exercise-list.html', exercises=exercises)
 
+@app.route('/api/exercises')
+def get_exercises():
+    db = get_db()
+    exercises = db.execute('SELECT * FROM Exercise').fetchall()
+    return jsonify([dict(row) for row in exercises])
+
+
 @app.route('/workout-list')
 def workout_list():
     db = get_db()
     workouts = db.execute("SELECT * FROM Workout").fetchall()
     return render_template('workout-list.html', workouts=workouts)
+
+
 
 @app.route('/workout', defaults={'workout_id': None})
 @app.route('/workout/<int:workout_id>', methods=['GET', 'POST'])
@@ -310,13 +404,54 @@ def api_workouts():
             })
     return jsonify(list(workouts.values()))
 
+# Route to handle insertion of exercise into workout
+@app.route('/insert-exercise', methods=['POST'])
+def insert_exercise():
+    data = request.json
+    exercise_detail_id = data.get('exercise_detail_id')
+    workout_id = data.get('workout_id')
+    if exercise_detail_id and workout_id:
+        try:
+            # Connect to SQLite database
+            conn = sqlite3.connect('workoutdatabase.db')
+            cursor = conn.cursor()
 
-@app.route('/api/exercises/<int:exercise_id>', methods=['DELETE'])
-def delete_exercise(exercise_id):
-    db = get_db()
-    db.execute("DELETE FROM Exercise WHERE exercise_id = ?", (exercise_id,))
-    db.commit()
-    return jsonify({'success': True}), 200
+            # Insert the exercise into the ExerciseInWorkout table
+            cursor.execute("INSERT INTO exercise_in_workout (exercise_detail_id, workout_id) VALUES (?, ?)",
+                           (exercise_detail_id, workout_id))
+            conn.commit()
+            conn.close()
+
+            return jsonify({'message': 'Exercise inserted successfully'}), 200
+        except Exception as e:
+            return jsonify({'message': str(e)}), 500
+    else:
+        return jsonify({'message': 'Invalid data provided'}), 400
+
+# Route to handle deletion of exercise from workout
+@app.route('/delete-exercise', methods=['POST'])
+def delete_exercise():
+    data = request.json
+    exercise_detail_id = data.get('exercise_detail_id')
+    workout_id = data.get('workout_id')
+    if exercise_detail_id and workout_id:
+        try:
+            # Connect to SQLite database
+            conn = sqlite3.connect('workoutdatabase.db')
+            cursor = conn.cursor()
+
+            # Delete the exercise from the ExerciseInWorkout table
+            cursor.execute("DELETE FROM exercise_in_workout WHERE exercise_detail_id = ? AND workout_id = ?",
+                           (exercise_detail_id, workout_id))
+            conn.commit()
+            conn.close()
+
+            return jsonify({'message': 'Exercise deleted successfully'}), 200
+        except Exception as e:
+            return jsonify({'message': str(e)}), 500
+    else:
+        return jsonify({'message': 'Invalid data provided'}), 400
+
 
 @app.route('/api/exercises/<int:workout_id>')
 def api_exercises_by_workout(workout_id):
@@ -333,11 +468,34 @@ def api_exercises_by_workout(workout_id):
 
 @app.route('/select-exercise/<int:workout_id>')
 def select_exercise(workout_id):
-    return render_template('select-exercise.html', workout_id=workout_id)
+    db = get_db()
+    # Fetch exercise details joined with their exercise information
+    exercises = db.execute('''
+        SELECT e.*, ed.*
+        FROM Exercise e
+        JOIN Exercise_Detail ed ON e.exercise_detail_id = ed.exercise_detail_id
+    ''').fetchall()
+    return render_template('select-exercise.html', exercises=exercises, workout_id=workout_id)
+
 
 @app.route('/edit-select-exercise/<int:workout_id>')
 def edit_select_exercise(workout_id):
     return render_template('edit-select-exercise.html', workout_id=workout_id)
+
+@app.route('/add-workout/<int:workout_id>')
+def add_workout(workout_id):
+    # Your logic here
+    return render_template('add-workout.html', workout_id=workout_id)
+
+@app.route('/api/add-exercise-to-workout', methods=['POST'])
+def add_exercise_to_workout():
+    workout_id = request.json['workout_id']
+    exercise_id = request.json['exercise_id']
+    db = get_db()
+    db.execute("INSERT INTO Exercise_In_Workout (workout_id, exercise_id) VALUES (?, ?)", (workout_id, exercise_id))
+    db.commit()
+    return jsonify({'success': True, 'message': 'Exercise added to workout successfully'})
+
 
 @app.route('/add-exercise', methods=['GET', 'POST'])
 def add_exercise():
@@ -353,6 +511,8 @@ def add_exercise():
         db.commit()
         return redirect(url_for('exercise_list'))
     return render_template('add-exercise.html')
+
+
 
 @app.route('/api/exercises-in-workouts/<int:workout_id>')
 def exercises_in_workouts(workout_id):
@@ -441,22 +601,44 @@ def add_or_edit_workout(workout_id=None):
     
 @app.route('/insert-workout/<int:workout_id>', methods=['POST'])
 def insert_workout(workout_id):
-    db = get_db()
-    name = request.form.get('name', 'Default Workout Name')
-    description = request.form.get('description', '')
-    intensity = request.form.get('intensity', 'Medium')
-    focus = request.form.get('focus', 'General')
-
     try:
+        # Extract workout data from the request
+        name = request.form['name']
+        description = request.form.get('description', '')  # Ensure description is optional
+        intensity = request.form['intensity']
+        focus = request.form['focus']
+        rating = int(request.form.get('rating', 5))  # Assuming default rating is 5 if not provided
+
+        # Connect to the database
+        conn = sqlite3.connect(DATABASE)
+        cursor = conn.cursor()
+
         # Insert the workout into the database
-        db.execute("INSERT INTO Workout (workout_id, name, description, intensity, focus) VALUES (?, ?, ?, ?, ?)",
-                   (workout_id, name, description, intensity, focus))
-        db.commit()
-        flash('Workout created successfully', 'success')  # Flash a success message
-        return redirect(url_for('workout_list'))  # Redirect to the workout list page
-    except sqlite3.IntegrityError:
-        flash('Workout with ID={} already exists. Please choose a different ID.'.format(workout_id), 'error')
-        return redirect(url_for('workout_list'))
+        cursor.execute("INSERT INTO Workout (workout_id, name, description, intensity, focus, rating) VALUES (?, ?, ?, ?, ?, ?)",
+                       (workout_id, name, description, intensity, focus, rating))
+        conn.commit()
+
+        # Close the database connection
+        conn.close()
+
+        # Return a JSON response indicating success
+        return jsonify({'success': True, 'message': 'Workout added successfully'})
+    except Exception as e:
+        # Return a JSON response with the error message
+        return jsonify({'success': False, 'message': str(e)}), 500  # Internal Server Error
+
+
+    
+# Flask route to generate and save a new workout, returning the new ID
+@app.route('/api/workouts/new', methods=['POST'])
+def create_new_workout():
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO Workout (name, description) VALUES (?, ?)", ('New Workout', 'Description'))
+    db.commit()
+    new_workout_id = cursor.lastrowid
+    return jsonify({'workout_id': new_workout_id})
+
 
 
 @app.route('/api/exercise-to-workout/add/<int:workout_id>/<int:exercise_id>', methods=['POST', 'DELETE'])
@@ -663,9 +845,11 @@ def add_day():
     else:
         return jsonify({'success': False, 'error': 'No day ID provided'}), 400
 
-@app.route('/select-workout.html')
-def select_workout():
-    return render_template('select-workout.html')
+@app.route('/select-workout/<int:dayId>')
+def select_workout(dayId):
+    # Your logic to handle the request
+    return render_template('select-workout.html', dayId=dayId)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

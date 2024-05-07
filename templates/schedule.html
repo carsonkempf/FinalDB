@@ -6,7 +6,7 @@
     <title>Schedule</title>
     <link rel="stylesheet" href="../static/styles.css"> <!-- Ensure the path to the CSS is correct -->
     <script src="https://cdn.jsdelivr.net/npm/dayjs/dayjs.min.js"></script> <!-- Added Day.js CDN -->
-    <script src="../static/schedule.js" defer></script>
+    <script src="{{ url_for('static', filename='schedule.js') }}" defer></script>
 </head>
 <body>
     <header>
@@ -43,6 +43,5 @@
             </div>
         </div>
     </div>
-    <script src="schedule.js"></script>
 </body>
 </html>

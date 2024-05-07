@@ -17,11 +17,31 @@
                 <li><a href="{{ url_for('schedule') }}">Schedule</a></li>
             </ul>
         </nav>
-    </header>
-    <div class="form-container">
-        <h1>Select Exercises</h1>
-        <div id="exercises-list-container"></div>
-        
+    </header>   
+    <h1>Select Exercises</h1>
+    <button id="done-button" class="done-button">Done</button>
+    <div id="exercises-container">
+        {% for exercise in exercises %}
+            <div class="exercise-container">
+                <h2>{{ exercise.name }}</h2>
+                <p>Description: {{ exercise.description }}</p>
+                <!-- Exercise Form -->
+                <form class="exercise-form" data-exercise-id="{{ exercise.exercise_id }}">
+                    <!-- Include hidden input for exercise ID -->
+                    <input type="hidden" name="exercise_id" value="{{ exercise.exercise_id }}">
+                    <label>Description:<input type="text" name="description" value="{{ exercise.description }}"></label>
+                    <label>Equipment Needed:<input type="text" name="equipment_needed" value="{{ exercise.equipment_needed }}"></label>
+                    <label>Weight:<input type="number" name="weight" value="{{ exercise.weight }}"></label>
+                    <label>Intensity:<input type="text" name="intensity" value="{{ exercise.intensity }}"></label>
+                    <label>Rating:<input type="number" name="rating" value="{{ exercise.rating }}"></label>
+                    <label>Sets:<input type="number" name="sets" value="{{ exercise.sets }}"></label>
+                    <label>Reps:<input type="number" name="reps" value="{{ exercise.reps }}"></label>
+                    <button type="button" onclick="submitExerciseForm(this.parentNode)">DONE</button>
+                </form>
+            </div>
+        {% endfor %}
     </div>
+
+    <script src="{{ url_for('static', filename='scripts/select-exercise.js') }}"></script>
 </body>
 </html>

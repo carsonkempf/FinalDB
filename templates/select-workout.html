@@ -19,6 +19,9 @@
     <div id="workouts-container">
         <!-- Workouts will be listed here -->
     </div>
+    <div class="done-container">
+        <a href="{{ url_for('schedule') }}" class="done-button">Done</a>
+    </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{{ url_for('static', filename='select-workout.js') }}"></script>
