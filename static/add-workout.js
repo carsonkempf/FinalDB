@@ -1,20 +1,55 @@
+function getWorkoutIdFromUrl() {
+    console.log("Current URL:", window.location.href);  // Log the full URL
+    console.log("Pathname:", window.location.pathname);  // Log the pathname part of the URL
+
+    const urlParts = window.location.pathname.split('/');
+    console.log("URL Parts:", urlParts);  // Log the split URL parts
+
+    // Try to extract the workout ID based on the URL structure
+    const workoutId = urlParts[urlParts.length - 1] === '' ? urlParts[urlParts.length - 2] : urlParts[urlParts.length - 1];
+    console.log("Extracted Workout ID:", workoutId);
+
+    return workoutId.match(/^\d+$/) ? workoutId : null;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const workoutId = getWorkoutIdFromUrl();
+    console.log("Workout ID extracted:", workoutId);  // Log the extracted workout ID
 
-    if (!workoutId) {
-        generateWorkoutId().then(newId => {
-            updateUrlWithWorkoutId(newId);
-            initializePage(newId);
+    // Event listener for the "Select Exercise" button
+    const selectExerciseButton = document.getElementById('select-exercise-button');
+    if (selectExerciseButton) {
+        selectExerciseButton.addEventListener('click', function() {
+            if (workoutId) {
+                window.location.href = `/select-exercise/${workoutId}`;
+            } else {
+                alert("Workout ID is missing from the URL.");
+            }
         });
-    } else {
-        initializePage(workoutId);
     }
 });
 
-function initializePage(workoutId) {
-    setupEventListeners(workoutId);
-    fetchExercisesWithWorkout(workoutId);
+function openSelectExercisePage(workoutId) {
+    if (workoutId) {
+        window.location.href = `/select-exercise/${workoutId}`;
+    } else {
+        alert("Workout ID is missing.");
+    }
 }
+
+function initializePage(workoutId) {
+    if (workoutId) {
+        setupEventListeners(workoutId);
+        fetchExercisesForWorkout(workoutId);
+    } else {
+        generateWorkoutId().then(newId => {
+            updateUrlWithWorkoutId(newId);
+            setupEventListeners(newId);
+        });
+    }
+}
+
+
 
 function setupEventListeners(workoutId) {
     const form = document.getElementById('workout-form');
@@ -22,22 +57,18 @@ function setupEventListeners(workoutId) {
         event.preventDefault();
         submitWorkoutForm(workoutId);
     });
-
-    const selectExerciseButton = document.getElementById('select-exercise-button');
-    if (selectExerciseButton) {
-        selectExerciseButton.addEventListener('click', function() {
-            const selectedExerciseId = document.getElementById('selected-exercise-id').value;
-            joinExerciseToWorkout(selectedExerciseId, workoutId);
-        });
-    }
 }
 
-function fetchExercisesWithWorkout(workoutId) {
-    Promise.all([
-        fetch(`/api/exercises-with-workouts/${workoutId}`).then(response => response.json()),
-        fetch(`/api/joined-exercises/${workoutId}`).then(response => response.json())
-    ])
-    .then(([directExercises, joinedExercises]) => displayExercises([...directExercises, ...joinedExercises]))
+function fetchExercisesForWorkout(workoutId) {
+    fetch(`/api/exercises-in-workouts/${workoutId}`)
+    .then(response => response.json())
+    .then(exercises => {
+        if (exercises.length) {
+            displayExercises(exercises);
+        } else {
+            console.log('No exercises found for this workout.');
+        }
+    })
     .catch(error => console.error('Error fetching exercises:', error));
 }
 
@@ -47,64 +78,45 @@ function displayExercises(exercises) {
     const ul = document.createElement('ul');
     exercises.forEach(exercise => {
         const li = document.createElement('li');
-        li.textContent = `${exercise.exercise_name} (Workout: ${exercise.workout_name})`;
+        li.textContent = `Name: ${exercise.name}, Intensity: ${exercise.intensity}, Muscle Group: ${exercise.muscle_group}, Description: ${exercise.description}`;
         ul.appendChild(li);
     });
     container.appendChild(ul);
 }
 
-function joinExerciseToWorkout(exerciseId, workoutId) {
-    fetch(`/api/exercise-to-workout/add/${workoutId}/${exerciseId}`, { method: 'POST' })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            fetchExercisesWithWorkout(workoutId);
-        } else {
-            alert('Error adding exercise to workout: ' + data.message);
-        }
-    })
-    .catch(error => alert('Error joining exercise to workout: ' + error));
-}
-
-function removeExerciseFromWorkout(exerciseId, workoutId) {
-    fetch(`/api/exercise-to-workout/remove/${workoutId}/${exerciseId}`, { method: 'DELETE' })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            fetchExercisesWithWorkout(workoutId);
-        } else {
-            alert('Error removing exercise from workout: ' + data.message);
-        }
-    })
-    .catch(error => alert('Error removing exercise from workout: ' + error));
-}
-
 function submitWorkoutForm(workoutId) {
     const form = document.getElementById('workout-form');
     const formData = new FormData(form);
+    let jsonObject = {};
+    formData.forEach((value, key) => { jsonObject[key] = value; });
 
-    fetch(`/insert-workout/${workoutId}`, {
-        method: 'POST',
-        body: formData
+    fetch(`/api/workouts/${workoutId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(jsonObject)
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error('Error submitting form data');
+            throw new Error('Failed to update workout');
         }
         return response.json();
     })
     .then(data => {
         if (data.success) {
-            window.location.href = '/workout-list';
+            console.log('Workout updated successfully');
+            window.location.href = '/workout-list'; // Navigate to workout list on success
         } else {
-            alert('Error: ' + data.message);
+            console.error('Failed to update workout:', data.error);
         }
     })
-    .catch(error => alert('Network Error: ' + error));
+    .catch(error => console.error('Error updating workout:', error));
 }
 
-
-
+function getWorkoutIdFromUrl() {
+    const urlParts = window.location.pathname.split('/');
+    const lastSegment = urlParts.pop() || urlParts.pop();  // handle potential trailing slash
+    return lastSegment.match(/\d+/) ? lastSegment : null;
+}
 
 function generateWorkoutId() {
     return fetch('/api/generate-workout-id')
@@ -112,18 +124,7 @@ function generateWorkoutId() {
         .then(data => data.workout_id);
 }
 
-function removeExtraWorkoutIdFromUrl() {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('workout_id');
-    window.history.replaceState({}, document.title, url.pathname);
-}
-
 function updateUrlWithWorkoutId(workoutId) {
     const newUrl = `/add-or-edit-workout/${workoutId}`;
     window.history.pushState({ path: newUrl }, '', newUrl);
-}
-
-function getWorkoutIdFromUrl() {
-    const urlParts = window.location.pathname.split('/');
-    return urlParts[urlParts.length - 1];
 }

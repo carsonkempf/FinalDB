@@ -36,12 +36,16 @@
                     <label>Rating:<input type="number" name="rating" value="{{ exercise.rating }}"></label>
                     <label>Sets:<input type="number" name="sets" value="{{ exercise.sets }}"></label>
                     <label>Reps:<input type="number" name="reps" value="{{ exercise.reps }}"></label>
-                    <button type="button" onclick="submitExerciseForm(this.parentNode)">DONE</button>
+                    <button type="button" onclick="submitExerciseForm(this.parentNode)">UPDATE</button>
+                    <label>
+                        <input type="checkbox" id="myCheckbox" name="exerciseCheckbox" onchange="checkCheckbox(123, 456, this)">
+                        Add/Remove Exercise
+                    </label>
                 </form>
             </div>
         {% endfor %}
     </div>
 
-    <script src="{{ url_for('static', filename='scripts/select-exercise.js') }}"></script>
+    <script src="{{ url_for('static', filename='select-exercise.js') }}"></script>
 </body>
 </html>

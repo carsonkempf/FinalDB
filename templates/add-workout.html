@@ -18,7 +18,8 @@
             </ul>
         </nav>
     </header>
-    <form id="workout-form" action="/add-or-edit-workout/{{ workout_id }}" method="POST">
+    <form id="workout-form" action="{{ url_for('submit_workout') }}" method="POST">
+
     <div class="form-container">
         <h1>Add Workout</h1>
         <label for="name">Workout Name:</label>
@@ -66,13 +67,11 @@
             </ul>
             {% endif %}
         </div>
-        {% if workout_id %}
-        <a href="{{ url_for('select_exercise', workout_id=workout_id) }}" id="select-exercise-link">Select Exercise</a>
-        {% else %}
-        <p>Please save the workout to select exercises.</p>
-        {% endif %}
-        
-        <button type="submit" id="create-button">Create</button>
+
+        <div id="exercises-container"></div>
+
+<button id="select-exercise-button" type="button">Select Exercise</button>
+<button type="submit">Create/Update Workout</button>
     </div>
     </form>
 </body>

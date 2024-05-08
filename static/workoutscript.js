@@ -8,13 +8,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function fetchWorkouts(container) {
     fetch('/api/workouts')
         .then(response => {
-            if (response.ok) {
-                return response.json();
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
-            throw new Error('Failed to fetch workouts.');
+            return response.json();
         })
         .then(data => {
-            console.log("Workouts fetched:", data);
+            console.log("Workouts fetched:", data);  // Log fetched data for debugging
             displayWorkouts(data, container);
         })
         .catch(error => {
@@ -25,14 +25,15 @@ function fetchWorkouts(container) {
 
 function displayWorkouts(data, container) {
     container.innerHTML = ''; // Clear previous contents
-    if (data.length === 0) {
+    if (!data || data.length === 0) {
         container.textContent = 'No workouts available.';
-    } else {
-        data.forEach(workout => {
-            const workoutDiv = createWorkoutDiv(workout);
-            container.appendChild(workoutDiv);
-        });
+        return;
     }
+
+    data.forEach(workout => {
+        const workoutDiv = createWorkoutDiv(workout);
+        container.appendChild(workoutDiv);
+    });
 }
 
 function createWorkoutDiv(workout) {
@@ -66,7 +67,9 @@ function createExercisesList(exercises) {
     const header = document.createElement('h3');
     header.textContent = 'Selected Exercises:';
     const list = document.createElement('ul');
-    exercises.forEach(exercise => list.appendChild(createExerciseItem(exercise)));
+    exercises.forEach(exercise => {
+        list.appendChild(createExerciseItem(exercise));
+    });
     const container = document.createElement('div');
     container.appendChild(header);
     container.appendChild(list);
