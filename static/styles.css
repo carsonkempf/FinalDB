@@ -24,6 +24,35 @@ li {
     color: #555;
 }
 
+.exercise-container {
+    margin-bottom: 20px;
+}
+
+.exercise-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.exercise-form label,
+.exercise-form input,
+.exercise-form select,
+.exercise-form button {
+    margin: 5px;
+}
+
+.exercise-detail {
+    width: 100%;
+    display: none;
+}
+
+.show-detail-button,
+.add-detail-button {
+    margin-top: 10px;
+}
+
 .container, .exercises-container, .workouts-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
